@@ -1,0 +1,122 @@
+# ZPotato Plugin Messages
+
+# Plugin prefix
+prefix: "&6[&eZPotato&6]&r"
+
+# General messages
+permission:
+  denied: "{prefix} &cYou do not have permission to execute this command."
+
+# Command-related messages
+command:
+  player-only: "{prefix} &cThis command can only be executed by a player."
+  unknown: "{prefix} &cUnknown command. Use &e/hp &cto see the list of commands."
+  arena-not-found: "{prefix} &cThe arena &e{arena} &cdoes not exist."
+
+  # Arena creation
+  create:
+    usage: "{prefix} &cUsage: &e/hp create <arena> [min] [max]"
+    invalid-min: "{prefix} &cThe minimum number of players must be a valid number."
+    invalid-max: "{prefix} &cThe maximum number of players must be a valid number."
+    invalid-range: "{prefix} &cThe minimum number must be lower than the maximum."
+    success: "{prefix} &aThe arena &e{arena} &ahas been successfully created."
+    already-exists: "{prefix} &cThe arena &e{arena} &calready exists."
+
+  # Arena deletion
+  delete:
+    usage: "{prefix} &cUsage: &e/hp delete <arena>"
+    success: "{prefix} &aThe arena &e{arena} &ahas been successfully deleted."
+    not-found: "{prefix} &cThe arena &e{arena} &cdoes not exist."
+
+  # Adding a spawn point
+  addspawn:
+    usage: "{prefix} &cUsage: &e/hp addspawn <arena>"
+    success: "{prefix} &aA spawn point has been added to the arena &e{arena}&a."
+
+  # Lobby configuration
+  setlobby:
+    usage: "{prefix} &cUsage: &e/hp setlobby <arena>"
+    success: "{prefix} &aThe lobby for arena &e{arena} &ahas been set to your position."
+
+  # Spectator zone configuration
+  setspectate:
+    usage: "{prefix} &cUsage: &e/hp setspectate <arena>"
+    success: "{prefix} &aThe spectator zone for arena &e{arena} &ahas been set to your position."
+
+  # Arena settings
+  settings:
+    usage: "{prefix} &cUsage: &e/hp settings <arena>"
+    unknown: "{prefix} &cUnknown setting."
+
+    minplayers:
+      usage: "{prefix} &cUsage: &e/hp settings <arena> minplayers <amount>"
+      invalid: "{prefix} &cThe minimum number of players must be a valid number greater than 0 and less than the maximum."
+      success: "{prefix} &aThe minimum number of players for arena &e{arena} &ahas been set to &e{amount}&a."
+
+    maxplayers:
+      usage: "{prefix} &cUsage: &e/hp settings <arena> maxplayers <amount>"
+      invalid: "{prefix} &cThe maximum number of players must be a valid number greater than 0 and higher than the minimum."
+      success: "{prefix} &aThe maximum number of players for arena &e{arena} &ahas been set to &e{amount}&a."
+
+    potatotimer:
+      usage: "{prefix} &cUsage: &e/hp settings <arena> potatotimer <seconds>"
+      invalid: "{prefix} &cThe potato timer duration must be a valid number greater than 0."
+      success: "{prefix} &aThe potato timer duration for arena &e{arena} &ahas been set to &e{time} &aseconds."
+
+  # Game start
+  start:
+    specify-arena: "{prefix} &cPlease specify an arena to start."
+    not-in-arena: "{prefix} &cYou are not in an arena."
+    success: "{prefix} &aThe game in arena &e{arena} &ahas started."
+    failed: "{prefix} &cUnable to start the game in arena &e{arena}&c. Ensure there are enough players and the arena is properly set up."
+
+  # Game stop
+  stop:
+    specify-arena: "{prefix} &cPlease specify an arena to stop."
+    not-in-arena: "{prefix} &cYou are not in an arena."
+    success: "{prefix} &aThe game in arena &e{arena} &ahas been stopped."
+    not-running: "{prefix} &cNo game is currently running in arena &e{arena}&c."
+
+  # Main lobby
+  setmainlobby:
+    success: "{prefix} &aThe main lobby has been set to your position."
+
+  unsetmainlobby:
+    success: "{prefix} &aThe main lobby has been removed."
+
+  # Reload
+  reload:
+    success: "{prefix} &aThe plugin has been successfully reloaded."
+
+  # Joining an arena
+  join:
+    usage: "{prefix} &cUsage: &e/hp join <arena>"
+    already-in-arena: "{prefix} &cYou are already in an arena."
+    success: "{prefix} &aYou have joined the arena &e{arena}&a."
+    failed: "{prefix} &cUnable to join the arena &e{arena}&c. It may be full or already in progress."
+
+  # Leaving an arena
+  leave:
+    not-in-arena: "{prefix} &cYou are not in an arena."
+    success: "{prefix} &aYou have left the arena &e{arena}&a."
+    failed: "{prefix} &cAn error occurred while leaving the arena."
+
+# Game-related messages
+game:
+  start: "{prefix} &aThe game is starting in arena &e{arena}&a!"
+  stop: "{prefix} &cThe game in arena &e{arena} &chas been stopped."
+
+  you-have-potato: "{prefix} &c&lYou have the hot potato! &eYou have {time} seconds to pass it to someone else!"
+  player-has-potato: "{prefix} &e{player} &cnow has the hot potato!"
+  potato-warning: "{prefix} &c&lWARNING! The potato will explode in {time} seconds!"
+  potato-transferred: "{prefix} &e{from} &ahas passed the hot potato to &e{to}&a!"
+
+  eliminated: "{prefix} &cYou have been eliminated! The potato exploded!"
+  player-eliminated: "{prefix} &e{player} &chas been eliminated! The potato exploded!"
+  winner: "{prefix} &a&lCongratulations to &e&l{player} &a&lfor winning the game in arena &e&l{arena}&a&l!"
+
+  cannot-teleport: "{prefix} &cYou cannot teleport during a game!"
+
+# Countdown messages
+countdown:
+  message: "{prefix} &aThe game starts in &e{time} &aseconds!"

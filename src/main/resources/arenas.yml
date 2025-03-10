@@ -1,0 +1,12 @@
+# ZPotato Plugin Arena Configuration
+
+# Example arena (will be replaced by arenas created using the /hp create command)
+arenas:
+  example:
+    minPlayers: 2
+    maxPlayers: 12
+    potatoTimer: 20
+    # Locations will be set using the commands /hp setlobby, /hp setspectate, and /hp addspawn
+    lobby: null
+    spectator: null
+    spawns: []

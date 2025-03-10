@@ -1,0 +1,39 @@
+# ZPotato Plugin Configuration
+
+# Default time for the hot potato (in seconds)
+default-potato-timer: 20
+
+# Countdown time before the game starts (in seconds)
+countdown-time: 30
+
+# Main lobby (will be set using the command /hp setmainlobby)
+main-lobby: null
+
+# General options
+options:
+  # Send players to the main lobby after a game
+  send-to-main-lobby-after-game: true
+
+  # Reset players after a game (inventory, health, etc.)
+  reset-players-after-game: true
+
+  # Visual effects for the hot potato
+  potato-effects:
+    enabled: true
+    particle-type: "FLAME"
+    sound-enabled: true
+
+# Statistics configuration
+statistics:
+  # Save statistics
+  enabled: true
+
+  # Statistics display format
+  display-format:
+    title: "&6&l{player}'s Hot Potato Stats"
+    games-played: "&7Games Played: &e{games_played}"
+    wins: "&7Wins: &e{wins}"
+    explosions: "&7Explosions: &e{explosions}"
+    win-rate: "&7Win Rate: &e{win_rate}%"
+
+
