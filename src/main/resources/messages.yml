@@ -94,6 +94,8 @@ command:
     already-in-arena: "{prefix} &cYou are already in an arena."
     success: "{prefix} &aYou have joined the arena &e{arena}&a."
     failed: "{prefix} &cUnable to join the arena &e{arena}&c. It may be full or already in progress."
+    invalid-arena: "{prefix} &cThe arena &e{arena} &ccannot be joined right now. Please try another arena."
+    invalid-arena-admin: "{prefix} &cThe arena &e{arena} &ccannot be joined because it is not properly configured. &7(Missing: {details})"
 
   # Leaving an arena
   leave:

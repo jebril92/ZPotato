@@ -32,7 +32,7 @@ public final class Main extends JavaPlugin {
         this.arenaManager = new ArenaManager(this);
         this.playerManager = new PlayerManager(this);
         this.gameManager = new GameManager(this);
-        this.guiManager = new GUIManager(this);  // Initialisation du GUIManager
+        this.guiManager = new GUIManager(this);
 
         this.configManager.loadConfig();
         this.messagesManager.loadMessages();
@@ -43,7 +43,7 @@ public final class Main extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
         getServer().getPluginManager().registerEvents(new GameListener(this), this);
-        getServer().getPluginManager().registerEvents(new GUIListener(this), this);  // Enregistrement du GUIListener
+        getServer().getPluginManager().registerEvents(new GUIListener(this), this);
 
         getLogger().info("ZPotato plugin has been enabled!");
     }

@@ -1,5 +1,5 @@
 name: ZPotato
-version: '1.0'
+version: '1.0-BETA'
 main: fr.zeygal.zpotato.Main
 api-version: '1.21'
 authors: [ZEYGAL]
@@ -16,6 +16,11 @@ permissions:
     default: op
     children:
       hotpotato.user: true
+      hotpotato.admin.*: true
+
+  hotpotato.admin.*:
+    description: All admin sub-permissions
+    children:
       hotpotato.admin.create: true
       hotpotato.admin.delete: true
       hotpotato.admin.addspawn: true
@@ -33,67 +38,7 @@ permissions:
   hotpotato.user:
     description: Grants access to basic player commands
     default: true
-
-  hotpotato.admin.create:
-    description: Allows creating an arena
-    default: op
-
-  hotpotato.admin.delete:
-    description: Allows deleting an arena
-    default: op
-
-  hotpotato.admin.addspawn:
-    description: Allows adding a spawn point to an arena
-    default: op
-
-  hotpotato.admin.setlobby:
-    description: Allows setting the lobby of an arena
-    default: op
-
-  hotpotato.admin.setspectate:
-    description: Allows setting the spectator area of an arena
-    default: op
-
-  hotpotato.admin.settings:
-    description: Allows configuring arena settings
-    default: op
-
-  hotpotato.admin.start:
-    description: Allows starting a game
-    default: op
-
-  hotpotato.admin.stop:
-    description: Allows stopping a game
-    default: op
-
-  hotpotato.admin.setmainlobby:
-    description: Allows setting the main lobby
-    default: op
-
-  hotpotato.admin.unsetmainlobby:
-    description: Allows removing the main lobby
-    default: op
-
-  hotpotato.admin.list:
-    description: Allows listing all arenas
-    default: op
-
-  hotpotato.admin.reload:
-    description: Allows reloading the plugin
-    default: op
-
-  hotpotato.admin.gui:
-    description: Allows using the GUI admin tools
-    default: op
-
-  hotpotato.user.join:
-    description: Allows joining an arena
-    default: true
-
-  hotpotato.user.leave:
-    description: Allows leaving an arena
-    default: true
-
-  hotpotato.user.stats:
-    description: Allows checking player statistics
-    default: true
+    children:
+      hotpotato.user.join: true
+      hotpotato.user.leave: true
+      hotpotato.user.stats: true

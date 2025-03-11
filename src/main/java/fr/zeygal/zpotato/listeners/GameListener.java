@@ -98,7 +98,7 @@ public class GameListener implements Listener {
             Arena arena = plugin.getArenaManager().getPlayerArena(player.getUniqueId());
 
             if (arena.getState() == ArenaState.RUNNING) {
-                // Logique pour les power-ups ou objets spéciaux à implémenter plus tard
+
             }
         }
     }

@@ -113,7 +113,6 @@ public class ArenaManager {
     }
 
     public boolean addPlayerToArena(Player player, String arenaName) {
-        // Vérifier si le joueur est déjà dans une arène
         if (isPlayerInAnyArena(player.getUniqueId())) {
             return false;
         }
@@ -123,23 +122,22 @@ public class ArenaManager {
             return false;
         }
 
-        if ((arena.getState() != ArenaState.WAITING && arena.getState() != ArenaState.STARTING)
-                || arena.getPlayerCount() >= arena.getMaxPlayers()) {
+        if (!arena.isValid()) {
+            return false;
+        }
+
+        if (arena.getState() != ArenaState.WAITING && arena.getState() != ArenaState.STARTING) {
+            return false;
+        }
+
+        if (arena.getPlayerCount() >= arena.getMaxPlayers()) {
             return false;
         }
 
         boolean added = arena.addPlayer(player.getUniqueId());
+
         if (added && arena.getLobby() != null) {
             player.teleport(arena.getLobby());
-
-            for (UUID playerId : arena.getPlayers()) {
-                Player arenaPlayer = org.bukkit.Bukkit.getPlayer(playerId);
-                if (arenaPlayer != null) {
-                    arenaPlayer.sendMessage(plugin.getMessagesManager().getPrefix() + " §e" + player.getName() +
-                            " §7a rejoint l'arène §e" + arena.getName() +
-                            " §7(" + arena.getPlayerCount() + "/" + arena.getMaxPlayers() + ")");
-                }
-            }
 
             if (arena.canStart() && arena.getState() == ArenaState.WAITING) {
                 plugin.getGameManager().startGame(arenaName);

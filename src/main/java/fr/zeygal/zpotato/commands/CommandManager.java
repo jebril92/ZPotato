@@ -1,26 +1,18 @@
 package fr.zeygal.zpotato.commands;
 
 import fr.zeygal.zpotato.Main;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
-import org.bukkit.entity.Player;
-
-import org.bukkit.command.Command;
-
-import fr.zeygal.zpotato.Main;
 import fr.zeygal.zpotato.arena.Arena;
 import fr.zeygal.zpotato.arena.ArenaState;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
-
-import org.bukkit.command.Command;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 public class CommandManager implements CommandExecutor, TabCompleter {
 
@@ -99,7 +91,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
                 subCommands.addAll(Arrays.asList(
                         "create", "delete", "addspawn", "setlobby", "setspectate",
                         "settings", "start", "stop", "setmainlobby", "unsetmainlobby",
-                        "list", "reload", "gui", "admin"  // Ajout des nouvelles commandes
+                        "list", "reload", "gui", "admin"
                 ));
             }
 
@@ -128,7 +120,6 @@ public class CommandManager implements CommandExecutor, TabCompleter {
                 }
             }
 
-            // Autocomplétion pour les sous-commandes GUI
             if ((subCommand.equals("gui") || subCommand.equals("admin")) && sender.hasPermission("hotpotato.admin")) {
                 List<String> guiSubCommands = Arrays.asList("arena", "spawns");
                 for (String guiSubCommand : guiSubCommands) {
@@ -141,7 +132,6 @@ public class CommandManager implements CommandExecutor, TabCompleter {
             String subCommand = args[0].toLowerCase();
             String subSubCommand = args[1].toLowerCase();
 
-            // Autocomplétion pour les arènes dans les commandes GUI
             if ((subCommand.equals("gui") || subCommand.equals("admin")) &&
                     (subSubCommand.equals("arena") || subSubCommand.equals("spawns")) &&
                     sender.hasPermission("hotpotato.admin")) {
@@ -209,7 +199,6 @@ public class CommandManager implements CommandExecutor, TabCompleter {
             }
         }
 
-        // Par défaut, ouvrir la liste des arènes
         plugin.getGUIManager().openGUI(player, "arena_list");
         return true;
     }
@@ -714,7 +703,9 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         String arenaName = args[1];
         Player player = (Player) sender;
 
-        if (plugin.getArenaManager().getArena(arenaName) == null) {
+        Arena arena = plugin.getArenaManager().getArena(arenaName);
+
+        if (arena == null) {
             sender.sendMessage(plugin.getMessagesManager().getMessage("command.arena-not-found").replace("{arena}", arenaName));
             return true;
         }
@@ -724,12 +715,64 @@ public class CommandManager implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        boolean joined = plugin.getArenaManager().addPlayerToArena(player, arenaName);
+        if (!arena.isValid()) {
+            if (player.hasPermission("hotpotato.admin")) {
+                StringBuilder details = new StringBuilder();
+                if (arena.getLobby() == null) details.append("lobby");
+                if (arena.getSpectatorLocation() == null) {
+                    if (details.length() > 0) details.append(", ");
+                    details.append("spectator");
+                }
+                if (arena.getSpawnLocations().isEmpty()) {
+                    if (details.length() > 0) details.append(", ");
+                    details.append("spawns");
+                }
 
-        if (joined) {
-            sender.sendMessage(plugin.getMessagesManager().getMessage("command.join.success").replace("{arena}", arenaName));
+                sender.sendMessage(plugin.getMessagesManager().getMessage("command.join.invalid-arena-admin")
+                        .replace("{arena}", arenaName)
+                        .replace("{details}", details.toString()));
+            } else {
+                sender.sendMessage(plugin.getMessagesManager().getMessage("command.join.invalid-arena")
+                        .replace("{arena}", arenaName));
+            }
+            return true;
+        }
+
+        if (arena.getState() != ArenaState.WAITING && arena.getState() != ArenaState.STARTING) {
+            sender.sendMessage(plugin.getMessagesManager().getMessage("command.join.failed")
+                    .replace("{arena}", arenaName));
+            return true;
+        }
+
+        if (arena.getPlayerCount() >= arena.getMaxPlayers()) {
+            sender.sendMessage(plugin.getMessagesManager().getMessage("command.join.failed")
+                    .replace("{arena}", arenaName));
+            return true;
+        }
+
+        boolean added = arena.addPlayer(player.getUniqueId());
+
+        if (added && arena.getLobby() != null) {
+            player.teleport(arena.getLobby());
+
+            for (UUID playerId : arena.getPlayers()) {
+                Player arenaPlayer = org.bukkit.Bukkit.getPlayer(playerId);
+                if (arenaPlayer != null) {
+                    arenaPlayer.sendMessage(plugin.getMessagesManager().getPrefix() + " §e" + player.getName() +
+                            " §7a rejoint l'arène §e" + arena.getName() +
+                            " §7(" + arena.getPlayerCount() + "/" + arena.getMaxPlayers() + ")");
+                }
+            }
+
+            player.sendMessage(plugin.getMessagesManager().getMessage("command.join.success")
+                    .replace("{arena}", arenaName));
+
+            if (arena.canStart() && arena.getState() == ArenaState.WAITING) {
+                plugin.getGameManager().startGame(arenaName);
+            }
         } else {
-            sender.sendMessage(plugin.getMessagesManager().getMessage("command.join.failed").replace("{arena}", arenaName));
+            sender.sendMessage(plugin.getMessagesManager().getMessage("command.join.failed")
+                    .replace("{arena}", arenaName));
         }
 
         return true;

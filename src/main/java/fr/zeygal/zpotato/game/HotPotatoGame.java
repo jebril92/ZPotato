@@ -2,11 +2,11 @@ package fr.zeygal.zpotato.game;
 
 import fr.zeygal.zpotato.Main;
 import fr.zeygal.zpotato.arena.Arena;
+import fr.zeygal.zpotato.utils.MessageUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +19,7 @@ public class HotPotatoGame {
     private UUID potatoHolder;
     private int potatoTimerTaskId = -1;
     private int potatoTimeLeft;
-    private BukkitTask bossBarTask;
+    private int actionBarTaskId = -1;
 
     public HotPotatoGame(Main plugin, Arena arena) {
         this.plugin = plugin;
@@ -52,10 +52,10 @@ public class HotPotatoGame {
             plugin.getPlayerManager().setHotPotato(potatoHolder, true);
         }
 
+        startActionBarTimer();
+
         potatoTimerTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
             potatoTimeLeft--;
-
-            updatePlayerExperience();
 
             if (potatoTimeLeft <= 5 && potatoTimeLeft > 0) {
                 Player potatoPlayer = Bukkit.getPlayer(potatoHolder);
@@ -75,13 +75,44 @@ public class HotPotatoGame {
         }, 0L, 20L);
     }
 
-    private void updatePlayerExperience() {
+    private void startActionBarTimer() {
+        if (actionBarTaskId != -1) {
+            Bukkit.getScheduler().cancelTask(actionBarTaskId);
+        }
+
+        actionBarTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
+            updateActionBar();
+        }, 0L, 5L);
+    }
+
+    private void updateActionBar() {
         Player player = Bukkit.getPlayer(potatoHolder);
         if (player != null) {
-            float ratio = (float) potatoTimeLeft / arena.getPotatoTimer();
+            float percentage = (float) potatoTimeLeft / arena.getPotatoTimer();
 
-            player.setLevel(potatoTimeLeft);
-            player.setExp(ratio);
+            ChatColor color;
+            if (percentage > 0.66) {
+                color = ChatColor.GREEN;
+            } else if (percentage > 0.33) {
+                color = ChatColor.YELLOW;
+            } else {
+                color = ChatColor.RED;
+            }
+
+            StringBuilder progressBar = new StringBuilder();
+            progressBar.append("▃▄▅▆▇");
+
+            progressBar.append(" " + potatoTimeLeft + " ");
+
+            progressBar.append("▇▆▅▄▃");
+
+            String message = color + progressBar.toString();
+
+            if (potatoTimeLeft <= 5) {
+                message = ChatColor.RED + "" + ChatColor.BOLD + message;
+            }
+
+            MessageUtils.sendActionBar(player, message);
         }
     }
 
@@ -99,6 +130,11 @@ public class HotPotatoGame {
             potatoTimerTaskId = -1;
         }
 
+        if (actionBarTaskId != -1) {
+            Bukkit.getScheduler().cancelTask(actionBarTaskId);
+            actionBarTaskId = -1;
+        }
+
         if (potatoHolder != null) {
             plugin.getPlayerManager().setHotPotato(potatoHolder, false);
 
@@ -106,6 +142,7 @@ public class HotPotatoGame {
             if (player != null) {
                 player.setLevel(0);
                 player.setExp(0);
+                MessageUtils.sendActionBar(player, "");
             }
         }
     }
@@ -141,6 +178,7 @@ public class HotPotatoGame {
             if (oldPlayer != null) {
                 oldPlayer.setLevel(0);
                 oldPlayer.setExp(0);
+                MessageUtils.sendActionBar(oldPlayer, "");
             }
         }
 
