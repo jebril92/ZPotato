@@ -8,7 +8,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class GUIUtils {
 
@@ -20,10 +22,9 @@ public class GUIUtils {
             meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
 
             if (lore.length > 0) {
-                List<String> loreList = new ArrayList<>();
-                for (String line : lore) {
-                    loreList.add(ChatColor.translateAlternateColorCodes('&', line));
-                }
+                List<String> loreList = Arrays.stream(lore)
+                        .map(line -> ChatColor.translateAlternateColorCodes('&', line))
+                        .collect(Collectors.toList());
                 meta.setLore(loreList);
             }
 
@@ -41,10 +42,9 @@ public class GUIUtils {
             meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
 
             if (!lore.isEmpty()) {
-                List<String> loreList = new ArrayList<>();
-                for (String line : lore) {
-                    loreList.add(ChatColor.translateAlternateColorCodes('&', line));
-                }
+                List<String> loreList = lore.stream()
+                        .map(line -> ChatColor.translateAlternateColorCodes('&', line))
+                        .collect(Collectors.toList());
                 meta.setLore(loreList);
             }
 

@@ -24,60 +24,67 @@ public class GameListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerDamage(EntityDamageByEntityEvent event) {
-        if (event.getDamager() instanceof Player && event.getEntity() instanceof Player) {
-            Player attacker = (Player) event.getDamager();
-            Player victim = (Player) event.getEntity();
+        if (!(event.getDamager() instanceof Player) || !(event.getEntity() instanceof Player)) {
+            return;
+        }
 
-            if (!plugin.getArenaManager().isPlayerInAnyArena(attacker.getUniqueId()) ||
-                    !plugin.getArenaManager().isPlayerInAnyArena(victim.getUniqueId())) {
-                return;
-            }
+        Player attacker = (Player) event.getDamager();
+        Player victim = (Player) event.getEntity();
 
-            Arena attackerArena = plugin.getArenaManager().getPlayerArena(attacker.getUniqueId());
-            Arena victimArena = plugin.getArenaManager().getPlayerArena(victim.getUniqueId());
+        if (!plugin.getArenaManager().isPlayerInAnyArena(attacker.getUniqueId()) ||
+                !plugin.getArenaManager().isPlayerInAnyArena(victim.getUniqueId())) {
+            return;
+        }
 
-            if (attackerArena != victimArena || attackerArena.getState() != ArenaState.RUNNING) {
-                return;
-            }
+        Arena attackerArena = plugin.getArenaManager().getPlayerArena(attacker.getUniqueId());
+        Arena victimArena = plugin.getArenaManager().getPlayerArena(victim.getUniqueId());
 
-            HotPotatoGame game = plugin.getGameManager().getGame(attackerArena.getName());
-            if (game != null && game.getPotatoHolder() != null &&
-                    game.getPotatoHolder().equals(attacker.getUniqueId())) {
+        if (attackerArena != victimArena || attackerArena.getState() != ArenaState.RUNNING) {
+            return;
+        }
 
-                plugin.getGameManager().transferPotato(attacker.getUniqueId(), victim.getUniqueId(), attackerArena.getName());
+        HotPotatoGame game = plugin.getGameManager().getGame(attackerArena.getName());
+        if (game != null && game.getPotatoHolder() != null &&
+                game.getPotatoHolder().equals(attacker.getUniqueId())) {
 
-                event.setCancelled(true);
-            }
+            plugin.getGameManager().transferPotato(attacker.getUniqueId(), victim.getUniqueId(), attackerArena.getName());
+            event.setCancelled(true);
         }
     }
 
     @EventHandler
     public void onEntityDamage(EntityDamageEvent event) {
-        if (event.getEntity() instanceof Player) {
-            Player player = (Player) event.getEntity();
+        if (!(event.getEntity() instanceof Player)) {
+            return;
+        }
 
-            if (plugin.getArenaManager().isPlayerInAnyArena(player.getUniqueId())) {
-                if (event instanceof EntityDamageByEntityEvent) {
-                    EntityDamageByEntityEvent damageByEntityEvent = (EntityDamageByEntityEvent) event;
-                    if (damageByEntityEvent.getDamager() instanceof Player) {
-                        return;
-                    }
-                }
+        Player player = (Player) event.getEntity();
 
-                event.setCancelled(true);
+        if (!plugin.getArenaManager().isPlayerInAnyArena(player.getUniqueId())) {
+            return;
+        }
+
+        if (event instanceof EntityDamageByEntityEvent) {
+            EntityDamageByEntityEvent damageByEntityEvent = (EntityDamageByEntityEvent) event;
+            if (damageByEntityEvent.getDamager() instanceof Player) {
+                return;
             }
         }
+
+        event.setCancelled(true);
     }
 
     @EventHandler
     public void onFoodLevelChange(FoodLevelChangeEvent event) {
-        if (event.getEntity() instanceof Player) {
-            Player player = (Player) event.getEntity();
+        if (!(event.getEntity() instanceof Player)) {
+            return;
+        }
 
-            if (plugin.getArenaManager().isPlayerInAnyArena(player.getUniqueId())) {
-                event.setCancelled(true);
-                event.setFoodLevel(20);
-            }
+        Player player = (Player) event.getEntity();
+
+        if (plugin.getArenaManager().isPlayerInAnyArena(player.getUniqueId())) {
+            event.setCancelled(true);
+            event.setFoodLevel(20);
         }
     }
 
@@ -98,7 +105,7 @@ public class GameListener implements Listener {
             Arena arena = plugin.getArenaManager().getPlayerArena(player.getUniqueId());
 
             if (arena.getState() == ArenaState.RUNNING) {
-
+                // Reserved for future functionality
             }
         }
     }

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class Arena {
 
@@ -48,7 +49,7 @@ public class Arena {
 
         List<String> spawns = spawnLocations.stream()
                 .map(LocationSerializer::locationToString)
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
 
         config.set(path + ".spawns", spawns);
     }
@@ -70,8 +71,7 @@ public class Arena {
             arena.setSpectatorLocation(LocationSerializer.stringToLocation(spectatorStr));
         }
 
-        List<String> spawnStrs = section.getStringList("spawns");
-        spawnStrs.stream()
+        section.getStringList("spawns").stream()
                 .map(LocationSerializer::stringToLocation)
                 .filter(location -> location != null)
                 .forEach(arena::addSpawnLocation);
@@ -80,11 +80,9 @@ public class Arena {
     }
 
     public boolean addPlayer(UUID playerId) {
-        if (state == ArenaState.WAITING || state == ArenaState.STARTING) {
-            if (players.size() < maxPlayers) {
-                players.add(playerId);
-                return true;
-            }
+        if ((state == ArenaState.WAITING || state == ArenaState.STARTING) && players.size() < maxPlayers) {
+            players.add(playerId);
+            return true;
         }
         return false;
     }

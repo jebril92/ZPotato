@@ -3,6 +3,7 @@ package fr.zeygal.zpotato.commands;
 import fr.zeygal.zpotato.Main;
 import fr.zeygal.zpotato.arena.Arena;
 import fr.zeygal.zpotato.arena.ArenaState;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -13,10 +14,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class CommandManager implements CommandExecutor, TabCompleter {
 
     private final Main plugin;
+    private static final List<String> ADMIN_COMMANDS = Arrays.asList(
+            "create", "delete", "addspawn", "setlobby", "setspectate",
+            "settings", "start", "stop", "setmainlobby", "unsetmainlobby",
+            "list", "reload", "gui", "admin"
+    );
+    private static final List<String> USER_COMMANDS = Arrays.asList(
+            "join", "leave", "stats"
+    );
 
     public CommandManager(Main plugin) {
         this.plugin = plugin;
@@ -36,47 +46,43 @@ public class CommandManager implements CommandExecutor, TabCompleter {
 
         String subCommand = args[0].toLowerCase();
 
-        if (subCommand.equals("create")) {
-            return handleCreateCommand(sender, args);
-        } else if (subCommand.equals("delete")) {
-            return handleDeleteCommand(sender, args);
-        } else if (subCommand.equals("addspawn")) {
-            return handleAddSpawnCommand(sender, args);
-        } else if (subCommand.equals("setlobby")) {
-            return handleSetLobbyCommand(sender, args);
-        } else if (subCommand.equals("setspectate")) {
-            return handleSetSpectateCommand(sender, args);
-        } else if (subCommand.equals("settings")) {
-            return handleSettingsCommand(sender, args);
-        } else if (subCommand.equals("start")) {
-            return handleStartCommand(sender, args);
-        } else if (subCommand.equals("stop")) {
-            return handleStopCommand(sender, args);
-        } else if (subCommand.equals("setmainlobby")) {
-            return handleSetMainLobbyCommand(sender, args);
-        } else if (subCommand.equals("unsetmainlobby")) {
-            return handleUnsetMainLobbyCommand(sender, args);
-        } else if (subCommand.equals("list")) {
-            return handleListCommand(sender, args);
-        } else if (subCommand.equals("reload")) {
-            return handleReloadCommand(sender, args);
-        }
-
-        else if (subCommand.equals("join")) {
-            return handleJoinCommand(sender, args);
-        } else if (subCommand.equals("leave")) {
-            return handleLeaveCommand(sender, args);
-        } else if (subCommand.equals("stats")) {
-            return handleStatsCommand(sender, args);
-        }
-
-        else if (subCommand.equals("gui") || subCommand.equals("admin")) {
-            return handleGUICommand(sender, args);
-        }
-
-        else {
-            sender.sendMessage(plugin.getMessagesManager().getMessage("command.unknown"));
-            return true;
+        switch (subCommand) {
+            case "create":
+                return handleCreateCommand(sender, args);
+            case "delete":
+                return handleDeleteCommand(sender, args);
+            case "addspawn":
+                return handleAddSpawnCommand(sender, args);
+            case "setlobby":
+                return handleSetLobbyCommand(sender, args);
+            case "setspectate":
+                return handleSetSpectateCommand(sender, args);
+            case "settings":
+                return handleSettingsCommand(sender, args);
+            case "start":
+                return handleStartCommand(sender, args);
+            case "stop":
+                return handleStopCommand(sender, args);
+            case "setmainlobby":
+                return handleSetMainLobbyCommand(sender, args);
+            case "unsetmainlobby":
+                return handleUnsetMainLobbyCommand(sender, args);
+            case "list":
+                return handleListCommand(sender, args);
+            case "reload":
+                return handleReloadCommand(sender, args);
+            case "join":
+                return handleJoinCommand(sender, args);
+            case "leave":
+                return handleLeaveCommand(sender, args);
+            case "stats":
+                return handleStatsCommand(sender, args);
+            case "gui":
+            case "admin":
+                return handleGUICommand(sender, args);
+            default:
+                sender.sendMessage(plugin.getMessagesManager().getMessage("command.unknown"));
+                return true;
         }
     }
 
@@ -88,60 +94,51 @@ public class CommandManager implements CommandExecutor, TabCompleter {
             List<String> subCommands = new ArrayList<>();
 
             if (sender.hasPermission("hotpotato.admin")) {
-                subCommands.addAll(Arrays.asList(
-                        "create", "delete", "addspawn", "setlobby", "setspectate",
-                        "settings", "start", "stop", "setmainlobby", "unsetmainlobby",
-                        "list", "reload", "gui", "admin"
-                ));
+                subCommands.addAll(ADMIN_COMMANDS);
             }
 
             if (sender.hasPermission("hotpotato.user")) {
-                subCommands.addAll(Arrays.asList("join", "leave", "stats"));
+                subCommands.addAll(USER_COMMANDS);
             }
 
-            for (String subCommand : subCommands) {
-                if (subCommand.startsWith(args[0].toLowerCase())) {
-                    completions.add(subCommand);
-                }
-            }
+            String prefix = args[0].toLowerCase();
+            completions.addAll(subCommands.stream()
+                    .filter(cmd -> cmd.startsWith(prefix))
+                    .collect(Collectors.toList()));
+
         } else if (args.length == 2) {
             String subCommand = args[0].toLowerCase();
+            String prefix = args[1];
+
             if ((subCommand.equals("join") || subCommand.equals("start") || subCommand.equals("stop") ||
                     subCommand.equals("delete") || subCommand.equals("addspawn") || subCommand.equals("setlobby") ||
                     subCommand.equals("setspectate") || subCommand.equals("settings")) &&
                     (sender.hasPermission("hotpotato.admin") ||
                             (subCommand.equals("join") && sender.hasPermission("hotpotato.user")))) {
 
-                List<String> arenaNames = new ArrayList<>(plugin.getArenaManager().getAllArenas().keySet());
-                for (String arenaName : arenaNames) {
-                    if (arenaName.startsWith(args[1])) {
-                        completions.add(arenaName);
-                    }
-                }
+                completions.addAll(plugin.getArenaManager().getAllArenas().keySet().stream()
+                        .filter(arena -> arena.startsWith(prefix))
+                        .collect(Collectors.toList()));
             }
 
             if ((subCommand.equals("gui") || subCommand.equals("admin")) && sender.hasPermission("hotpotato.admin")) {
                 List<String> guiSubCommands = Arrays.asList("arena", "spawns");
-                for (String guiSubCommand : guiSubCommands) {
-                    if (guiSubCommand.startsWith(args[1].toLowerCase())) {
-                        completions.add(guiSubCommand);
-                    }
-                }
+                completions.addAll(guiSubCommands.stream()
+                        .filter(cmd -> cmd.startsWith(prefix.toLowerCase()))
+                        .collect(Collectors.toList()));
             }
         } else if (args.length == 3) {
             String subCommand = args[0].toLowerCase();
             String subSubCommand = args[1].toLowerCase();
+            String prefix = args[2];
 
             if ((subCommand.equals("gui") || subCommand.equals("admin")) &&
                     (subSubCommand.equals("arena") || subSubCommand.equals("spawns")) &&
                     sender.hasPermission("hotpotato.admin")) {
 
-                List<String> arenaNames = new ArrayList<>(plugin.getArenaManager().getAllArenas().keySet());
-                for (String arenaName : arenaNames) {
-                    if (arenaName.startsWith(args[2])) {
-                        completions.add(arenaName);
-                    }
-                }
+                completions.addAll(plugin.getArenaManager().getAllArenas().keySet().stream()
+                        .filter(arena -> arena.startsWith(prefix))
+                        .collect(Collectors.toList()));
             }
         }
 
@@ -164,46 +161,29 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         if (args.length >= 2) {
             String guiSubCommand = args[1].toLowerCase();
 
-            if (guiSubCommand.equals("arena")) {
-                if (args.length >= 3) {
-                    String arenaName = args[2];
-                    Arena arena = plugin.getArenaManager().getArena(arenaName);
-
-                    if (arena == null) {
-                        sender.sendMessage(plugin.getMessagesManager().getMessage("command.arena-not-found").replace("{arena}", arenaName));
-                        return true;
-                    }
-
-                    plugin.getGUIManager().openGUI(player, "arena_settings", arenaName);
-                    return true;
-                } else {
-                    sender.sendMessage(plugin.getMessagesManager().getPrefix() + " §cUsage: §e/hp " + args[0] + " arena <arena_name>");
+            if (guiSubCommand.equals("arena") || guiSubCommand.equals("spawns")) {
+                if (args.length < 3) {
+                    sender.sendMessage(plugin.getMessagesManager().getPrefix() + " §cUsage: §e/hp " + args[0] + " " + guiSubCommand + " <arena_name>");
                     return true;
                 }
-            } else if (guiSubCommand.equals("spawns")) {
-                if (args.length >= 3) {
-                    String arenaName = args[2];
-                    Arena arena = plugin.getArenaManager().getArena(arenaName);
 
-                    if (arena == null) {
-                        sender.sendMessage(plugin.getMessagesManager().getMessage("command.arena-not-found").replace("{arena}", arenaName));
-                        return true;
-                    }
+                String arenaName = args[2];
+                Arena arena = plugin.getArenaManager().getArena(arenaName);
 
-                    plugin.getGUIManager().openGUI(player, "spawn_manager", arenaName);
-                    return true;
-                } else {
-                    sender.sendMessage(plugin.getMessagesManager().getPrefix() + " §cUsage: §e/hp " + args[0] + " spawns <arena_name>");
+                if (arena == null) {
+                    sender.sendMessage(plugin.getMessagesManager().getMessage("command.arena-not-found").replace("{arena}", arenaName));
                     return true;
                 }
+
+                String guiType = guiSubCommand.equals("arena") ? "arena_settings" : "spawn_manager";
+                plugin.getGUIManager().openGUI(player, guiType, arenaName);
+                return true;
             }
         }
 
         plugin.getGUIManager().openGUI(player, "arena_list");
         return true;
     }
-
-
 
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(plugin.getMessagesManager().getPrefix() + " §6Hot Potato Commands");
@@ -231,7 +211,6 @@ public class CommandManager implements CommandExecutor, TabCompleter {
             sender.sendMessage("§c/hp admin §7- Alias for gui command");
         }
     }
-
 
     private boolean handleCreateCommand(CommandSender sender, String[] args) {
         if (!sender.hasPermission("hotpotato.admin")) {
@@ -272,12 +251,9 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         }
 
         boolean created = plugin.getArenaManager().createArena(arenaName, minPlayers, maxPlayers);
-
-        if (created) {
-            sender.sendMessage(plugin.getMessagesManager().getMessage("command.create.success").replace("{arena}", arenaName));
-        } else {
-            sender.sendMessage(plugin.getMessagesManager().getMessage("command.create.already-exists").replace("{arena}", arenaName));
-        }
+        sender.sendMessage(plugin.getMessagesManager().getMessage(
+                        created ? "command.create.success" : "command.create.already-exists")
+                .replace("{arena}", arenaName));
 
         return true;
     }
@@ -294,14 +270,11 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         }
 
         String arenaName = args[1];
-
         boolean deleted = plugin.getArenaManager().deleteArena(arenaName);
 
-        if (deleted) {
-            sender.sendMessage(plugin.getMessagesManager().getMessage("command.delete.success").replace("{arena}", arenaName));
-        } else {
-            sender.sendMessage(plugin.getMessagesManager().getMessage("command.delete.not-found").replace("{arena}", arenaName));
-        }
+        sender.sendMessage(plugin.getMessagesManager().getMessage(
+                        deleted ? "command.delete.success" : "command.delete.not-found")
+                .replace("{arena}", arenaName));
 
         return true;
     }
@@ -324,15 +297,15 @@ public class CommandManager implements CommandExecutor, TabCompleter {
 
         String arenaName = args[1];
         Player player = (Player) sender;
+        Arena arena = plugin.getArenaManager().getArena(arenaName);
 
-        if (plugin.getArenaManager().getArena(arenaName) == null) {
+        if (arena == null) {
             sender.sendMessage(plugin.getMessagesManager().getMessage("command.arena-not-found").replace("{arena}", arenaName));
             return true;
         }
 
-        plugin.getArenaManager().getArena(arenaName).addSpawnLocation(player.getLocation());
+        arena.addSpawnLocation(player.getLocation());
         plugin.getArenaManager().saveArenas();
-
         sender.sendMessage(plugin.getMessagesManager().getMessage("command.addspawn.success").replace("{arena}", arenaName));
 
         return true;
@@ -356,15 +329,15 @@ public class CommandManager implements CommandExecutor, TabCompleter {
 
         String arenaName = args[1];
         Player player = (Player) sender;
+        Arena arena = plugin.getArenaManager().getArena(arenaName);
 
-        if (plugin.getArenaManager().getArena(arenaName) == null) {
+        if (arena == null) {
             sender.sendMessage(plugin.getMessagesManager().getMessage("command.arena-not-found").replace("{arena}", arenaName));
             return true;
         }
 
-        plugin.getArenaManager().getArena(arenaName).setLobby(player.getLocation());
+        arena.setLobby(player.getLocation());
         plugin.getArenaManager().saveArenas();
-
         sender.sendMessage(plugin.getMessagesManager().getMessage("command.setlobby.success").replace("{arena}", arenaName));
 
         return true;
@@ -388,15 +361,15 @@ public class CommandManager implements CommandExecutor, TabCompleter {
 
         String arenaName = args[1];
         Player player = (Player) sender;
+        Arena arena = plugin.getArenaManager().getArena(arenaName);
 
-        if (plugin.getArenaManager().getArena(arenaName) == null) {
+        if (arena == null) {
             sender.sendMessage(plugin.getMessagesManager().getMessage("command.arena-not-found").replace("{arena}", arenaName));
             return true;
         }
 
-        plugin.getArenaManager().getArena(arenaName).setSpectatorLocation(player.getLocation());
+        arena.setSpectatorLocation(player.getLocation());
         plugin.getArenaManager().saveArenas();
-
         sender.sendMessage(plugin.getMessagesManager().getMessage("command.setspectate.success").replace("{arena}", arenaName));
 
         return true;
@@ -414,17 +387,18 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         }
 
         String arenaName = args[1];
+        Arena arena = plugin.getArenaManager().getArena(arenaName);
 
-        if (plugin.getArenaManager().getArena(arenaName) == null) {
+        if (arena == null) {
             sender.sendMessage(plugin.getMessagesManager().getMessage("command.arena-not-found").replace("{arena}", arenaName));
             return true;
         }
 
         if (args.length < 3) {
             sender.sendMessage(plugin.getMessagesManager().getPrefix() + " §6Arena Settings: §e" + arenaName);
-            sender.sendMessage("§7Min Players: §e" + plugin.getArenaManager().getArena(arenaName).getMinPlayers());
-            sender.sendMessage("§7Max Players: §e" + plugin.getArenaManager().getArena(arenaName).getMaxPlayers());
-            sender.sendMessage("§7Potato Timer: §e" + plugin.getArenaManager().getArena(arenaName).getPotatoTimer() + "s");
+            sender.sendMessage("§7Min Players: §e" + arena.getMinPlayers());
+            sender.sendMessage("§7Max Players: §e" + arena.getMaxPlayers());
+            sender.sendMessage("§7Potato Timer: §e" + arena.getPotatoTimer() + "s");
 
             sender.sendMessage("§6Available settings:");
             sender.sendMessage("§e/hp settings " + arenaName + " minplayers <amount>");
@@ -436,83 +410,98 @@ public class CommandManager implements CommandExecutor, TabCompleter {
 
         String setting = args[2].toLowerCase();
 
-        if (setting.equals("minplayers")) {
-            if (args.length < 4) {
-                sender.sendMessage(plugin.getMessagesManager().getMessage("command.settings.minplayers.usage"));
+        switch (setting) {
+            case "minplayers":
+                return handleMinPlayersSettings(sender, args, arena, arenaName);
+            case "maxplayers":
+                return handleMaxPlayersSettings(sender, args, arena, arenaName);
+            case "potatotimer":
+                return handlePotatoTimerSettings(sender, args, arena, arenaName);
+            default:
+                sender.sendMessage(plugin.getMessagesManager().getMessage("command.settings.unknown"));
                 return true;
-            }
+        }
+    }
 
-            try {
-                int minPlayers = Integer.parseInt(args[3]);
+    private boolean handleMinPlayersSettings(CommandSender sender, String[] args, Arena arena, String arenaName) {
+        if (args.length < 4) {
+            sender.sendMessage(plugin.getMessagesManager().getMessage("command.settings.minplayers.usage"));
+            return true;
+        }
 
-                if (minPlayers <= 0 || minPlayers > plugin.getArenaManager().getArena(arenaName).getMaxPlayers()) {
-                    sender.sendMessage(plugin.getMessagesManager().getMessage("command.settings.minplayers.invalid"));
-                    return true;
-                }
+        try {
+            int minPlayers = Integer.parseInt(args[3]);
 
-                plugin.getArenaManager().getArena(arenaName).setMinPlayers(minPlayers);
-                plugin.getArenaManager().saveArenas();
-
-                sender.sendMessage(plugin.getMessagesManager().getMessage("command.settings.minplayers.success")
-                        .replace("{arena}", arenaName)
-                        .replace("{amount}", String.valueOf(minPlayers)));
-
-            } catch (NumberFormatException e) {
+            if (minPlayers <= 0 || minPlayers > arena.getMaxPlayers()) {
                 sender.sendMessage(plugin.getMessagesManager().getMessage("command.settings.minplayers.invalid"));
-            }
-
-        } else if (setting.equals("maxplayers")) {
-            if (args.length < 4) {
-                sender.sendMessage(plugin.getMessagesManager().getMessage("command.settings.maxplayers.usage"));
                 return true;
             }
 
-            try {
-                int maxPlayers = Integer.parseInt(args[3]);
+            arena.setMinPlayers(minPlayers);
+            plugin.getArenaManager().saveArenas();
 
-                if (maxPlayers <= 0 || maxPlayers < plugin.getArenaManager().getArena(arenaName).getMinPlayers()) {
-                    sender.sendMessage(plugin.getMessagesManager().getMessage("command.settings.maxplayers.invalid"));
-                    return true;
-                }
+            sender.sendMessage(plugin.getMessagesManager().getMessage("command.settings.minplayers.success")
+                    .replace("{arena}", arenaName)
+                    .replace("{amount}", String.valueOf(minPlayers)));
 
-                plugin.getArenaManager().getArena(arenaName).setMaxPlayers(maxPlayers);
-                plugin.getArenaManager().saveArenas();
+        } catch (NumberFormatException e) {
+            sender.sendMessage(plugin.getMessagesManager().getMessage("command.settings.minplayers.invalid"));
+        }
 
-                sender.sendMessage(plugin.getMessagesManager().getMessage("command.settings.maxplayers.success")
-                        .replace("{arena}", arenaName)
-                        .replace("{amount}", String.valueOf(maxPlayers)));
+        return true;
+    }
 
-            } catch (NumberFormatException e) {
+    private boolean handleMaxPlayersSettings(CommandSender sender, String[] args, Arena arena, String arenaName) {
+        if (args.length < 4) {
+            sender.sendMessage(plugin.getMessagesManager().getMessage("command.settings.maxplayers.usage"));
+            return true;
+        }
+
+        try {
+            int maxPlayers = Integer.parseInt(args[3]);
+
+            if (maxPlayers <= 0 || maxPlayers < arena.getMinPlayers()) {
                 sender.sendMessage(plugin.getMessagesManager().getMessage("command.settings.maxplayers.invalid"));
-            }
-
-        } else if (setting.equals("potatotimer")) {
-            if (args.length < 4) {
-                sender.sendMessage(plugin.getMessagesManager().getMessage("command.settings.potatotimer.usage"));
                 return true;
             }
 
-            try {
-                int potatoTimer = Integer.parseInt(args[3]);
+            arena.setMaxPlayers(maxPlayers);
+            plugin.getArenaManager().saveArenas();
 
-                if (potatoTimer <= 0) {
-                    sender.sendMessage(plugin.getMessagesManager().getMessage("command.settings.potatotimer.invalid"));
-                    return true;
-                }
+            sender.sendMessage(plugin.getMessagesManager().getMessage("command.settings.maxplayers.success")
+                    .replace("{arena}", arenaName)
+                    .replace("{amount}", String.valueOf(maxPlayers)));
 
-                plugin.getArenaManager().getArena(arenaName).setPotatoTimer(potatoTimer);
-                plugin.getArenaManager().saveArenas();
+        } catch (NumberFormatException e) {
+            sender.sendMessage(plugin.getMessagesManager().getMessage("command.settings.maxplayers.invalid"));
+        }
 
-                sender.sendMessage(plugin.getMessagesManager().getMessage("command.settings.potatotimer.success")
-                        .replace("{arena}", arenaName)
-                        .replace("{time}", String.valueOf(potatoTimer)));
+        return true;
+    }
 
-            } catch (NumberFormatException e) {
+    private boolean handlePotatoTimerSettings(CommandSender sender, String[] args, Arena arena, String arenaName) {
+        if (args.length < 4) {
+            sender.sendMessage(plugin.getMessagesManager().getMessage("command.settings.potatotimer.usage"));
+            return true;
+        }
+
+        try {
+            int potatoTimer = Integer.parseInt(args[3]);
+
+            if (potatoTimer <= 0) {
                 sender.sendMessage(plugin.getMessagesManager().getMessage("command.settings.potatotimer.invalid"));
+                return true;
             }
 
-        } else {
-            sender.sendMessage(plugin.getMessagesManager().getMessage("command.settings.unknown"));
+            arena.setPotatoTimer(potatoTimer);
+            plugin.getArenaManager().saveArenas();
+
+            sender.sendMessage(plugin.getMessagesManager().getMessage("command.settings.potatotimer.success")
+                    .replace("{arena}", arenaName)
+                    .replace("{time}", String.valueOf(potatoTimer)));
+
+        } catch (NumberFormatException e) {
+            sender.sendMessage(plugin.getMessagesManager().getMessage("command.settings.potatotimer.invalid"));
         }
 
         return true;
@@ -549,12 +538,9 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         }
 
         boolean started = plugin.getGameManager().startGame(arenaName);
-
-        if (started) {
-            sender.sendMessage(plugin.getMessagesManager().getMessage("command.start.success").replace("{arena}", arenaName));
-        } else {
-            sender.sendMessage(plugin.getMessagesManager().getMessage("command.start.failed").replace("{arena}", arenaName));
-        }
+        sender.sendMessage(plugin.getMessagesManager().getMessage(
+                        started ? "command.start.success" : "command.start.failed")
+                .replace("{arena}", arenaName));
 
         return true;
     }
@@ -590,12 +576,9 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         }
 
         boolean stopped = plugin.getGameManager().stopGame(arenaName);
-
-        if (stopped) {
-            sender.sendMessage(plugin.getMessagesManager().getMessage("command.stop.success").replace("{arena}", arenaName));
-        } else {
-            sender.sendMessage(plugin.getMessagesManager().getMessage("command.stop.not-running").replace("{arena}", arenaName));
-        }
+        sender.sendMessage(plugin.getMessagesManager().getMessage(
+                        stopped ? "command.stop.success" : "command.stop.not-running")
+                .replace("{arena}", arenaName));
 
         return true;
     }
@@ -613,7 +596,6 @@ public class CommandManager implements CommandExecutor, TabCompleter {
 
         Player player = (Player) sender;
         plugin.getConfigManager().setMainLobby(player.getLocation());
-
         sender.sendMessage(plugin.getMessagesManager().getMessage("command.setmainlobby.success"));
 
         return true;
@@ -626,7 +608,6 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         }
 
         plugin.getConfigManager().unsetMainLobby();
-
         sender.sendMessage(plugin.getMessagesManager().getMessage("command.unsetmainlobby.success"));
 
         return true;
@@ -646,19 +627,19 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         }
 
         for (String arenaName : plugin.getArenaManager().getAllArenas().keySet()) {
+            Arena arena = plugin.getArenaManager().getArena(arenaName);
             StringBuilder arenaInfo = new StringBuilder("§e" + arenaName + " §7- ");
 
-            arenaInfo.append("State: §")
-                    .append(plugin.getArenaManager().getArena(arenaName).getState() == fr.zeygal.zpotato.arena.ArenaState.RUNNING ? "a" : "c")
-                    .append(plugin.getArenaManager().getArena(arenaName).getState().name());
+            String stateColor = arena.getState() == ArenaState.RUNNING ? "a" : "c";
+            arenaInfo.append("State: §").append(stateColor).append(arena.getState().name());
 
             arenaInfo.append("§7, Players: §e")
-                    .append(plugin.getArenaManager().getArena(arenaName).getPlayerCount())
+                    .append(arena.getPlayerCount())
                     .append("/")
-                    .append(plugin.getArenaManager().getArena(arenaName).getMaxPlayers());
+                    .append(arena.getMaxPlayers());
 
             arenaInfo.append("§7, Valid: §")
-                    .append(plugin.getArenaManager().getArena(arenaName).isValid() ? "a✓" : "c✗");
+                    .append(arena.isValid() ? "a✓" : "c✗");
 
             sender.sendMessage(arenaInfo.toString());
         }
@@ -682,7 +663,6 @@ public class CommandManager implements CommandExecutor, TabCompleter {
 
         return true;
     }
-
 
     private boolean handleJoinCommand(CommandSender sender, String[] args) {
         if (!(sender instanceof Player)) {
@@ -756,7 +736,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
             player.teleport(arena.getLobby());
 
             for (UUID playerId : arena.getPlayers()) {
-                Player arenaPlayer = org.bukkit.Bukkit.getPlayer(playerId);
+                Player arenaPlayer = Bukkit.getPlayer(playerId);
                 if (arenaPlayer != null) {
                     arenaPlayer.sendMessage(plugin.getMessagesManager().getPrefix() + " §e" + player.getName() +
                             " §7has joined arena §e" + arena.getName() +

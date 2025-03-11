@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 public class ArenaManager {
@@ -35,19 +34,14 @@ public class ArenaManager {
         ConfigurationSection arenasSection = arenasConfig.getConfigurationSection("arenas");
 
         if (arenasSection != null) {
-            arenasSection.getKeys(false).stream()
-                    .map(arenaName -> {
-                        ConfigurationSection arenaSection = arenasSection.getConfigurationSection(arenaName);
-                        if (arenaSection != null) {
-                            return Arena.loadFromConfig(arenaSection, arenaName);
-                        }
-                        return null;
-                    })
-                    .filter(arena -> arena != null)
-                    .forEach(arena -> {
-                        arenas.put(arena.getName(), arena);
-                        plugin.getLogger().info("Loaded arena: " + arena.getName());
-                    });
+            arenasSection.getKeys(false).forEach(arenaName -> {
+                ConfigurationSection arenaSection = arenasSection.getConfigurationSection(arenaName);
+                if (arenaSection != null) {
+                    Arena arena = Arena.loadFromConfig(arenaSection, arenaName);
+                    arenas.put(arena.getName(), arena);
+                    plugin.getLogger().info("Loaded arena: " + arena.getName());
+                }
+            });
         }
     }
 
@@ -119,19 +113,9 @@ public class ArenaManager {
         }
 
         Arena arena = getArena(arenaName);
-        if (arena == null) {
-            return false;
-        }
-
-        if (!arena.isValid()) {
-            return false;
-        }
-
-        if (arena.getState() != ArenaState.WAITING && arena.getState() != ArenaState.STARTING) {
-            return false;
-        }
-
-        if (arena.getPlayerCount() >= arena.getMaxPlayers()) {
+        if (arena == null || !arena.isValid() ||
+                (arena.getState() != ArenaState.WAITING && arena.getState() != ArenaState.STARTING) ||
+                arena.getPlayerCount() >= arena.getMaxPlayers()) {
             return false;
         }
 
@@ -149,7 +133,7 @@ public class ArenaManager {
     }
 
     public boolean removePlayerFromArena(Player player) {
-        Optional<Arena> playerArenaOpt = Optional.ofNullable(getPlayerArena(player.getUniqueId()));
-        return playerArenaOpt.map(arena -> arena.removePlayer(player.getUniqueId())).orElse(false);
+        Arena arena = getPlayerArena(player.getUniqueId());
+        return arena != null && arena.removePlayer(player.getUniqueId());
     }
 }

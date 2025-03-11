@@ -5,6 +5,7 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class MessageUtils {
 
@@ -16,10 +17,9 @@ public class MessageUtils {
     }
 
     public static List<String> colorize(List<String> messages) {
-        for (int i = 0; i < messages.size(); i++) {
-            messages.set(i, colorize(messages.get(i)));
-        }
-        return messages;
+        return messages.stream()
+                .map(MessageUtils::colorize)
+                .collect(Collectors.toList());
     }
 
     public static String format(String message, Map<String, String> replacements) {
@@ -28,7 +28,6 @@ public class MessageUtils {
         }
 
         String formatted = message;
-
         for (Map.Entry<String, String> entry : replacements.entrySet()) {
             formatted = formatted.replace("{" + entry.getKey() + "}", entry.getValue());
         }

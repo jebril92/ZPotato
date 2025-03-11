@@ -7,6 +7,7 @@ import org.bukkit.inventory.Inventory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class GUIManager {
 
@@ -17,7 +18,7 @@ public class GUIManager {
     public GUIManager(Main plugin) {
         this.plugin = plugin;
         this.registeredGUIs = new HashMap<>();
-        this.playerGUIs = new HashMap<>();
+        this.playerGUIs = new ConcurrentHashMap<>();
 
         registerGUIs();
     }

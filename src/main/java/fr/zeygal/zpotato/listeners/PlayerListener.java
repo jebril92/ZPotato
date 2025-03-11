@@ -23,7 +23,6 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-
         plugin.getPlayerManager().getPlayer(player);
     }
 
@@ -55,24 +54,28 @@ public class PlayerListener implements Listener {
     public void onPlayerTeleport(PlayerTeleportEvent event) {
         Player player = event.getPlayer();
 
-        if (plugin.getArenaManager().isPlayerInAnyArena(player.getUniqueId())) {
-            Arena arena = plugin.getArenaManager().getPlayerArena(player.getUniqueId());
+        if (!plugin.getArenaManager().isPlayerInAnyArena(player.getUniqueId())) {
+            return;
+        }
 
-            if (arena.getState() == ArenaState.RUNNING) {
-                Location to = event.getTo();
+        Arena arena = plugin.getArenaManager().getPlayerArena(player.getUniqueId());
 
-                if (event.getCause() == PlayerTeleportEvent.TeleportCause.PLUGIN) {
-                    boolean isValidDestination = isLocationInArena(to, arena);
+        if (arena.getState() != ArenaState.RUNNING) {
+            return;
+        }
 
-                    if (!isValidDestination) {
-                        event.setCancelled(true);
-                        player.sendMessage(plugin.getMessagesManager().getMessage("game.cannot-teleport"));
-                    }
-                } else {
-                    event.setCancelled(true);
-                    player.sendMessage(plugin.getMessagesManager().getMessage("game.cannot-teleport"));
-                }
+        Location to = event.getTo();
+
+        // Allow plugin teleports only to valid arena locations
+        if (event.getCause() == PlayerTeleportEvent.TeleportCause.PLUGIN) {
+            if (!isLocationInArena(to, arena)) {
+                event.setCancelled(true);
+                player.sendMessage(plugin.getMessagesManager().getMessage("game.cannot-teleport"));
             }
+        } else {
+            // Prevent other teleport types during game
+            event.setCancelled(true);
+            player.sendMessage(plugin.getMessagesManager().getMessage("game.cannot-teleport"));
         }
     }
 

@@ -6,16 +6,18 @@ import org.bukkit.World;
 
 public class LocationSerializer {
 
+    private static final String SEPARATOR = ":";
+
     public static String locationToString(Location location) {
         if (location == null) {
             return null;
         }
 
-        return location.getWorld().getName() + ":" +
-                location.getX() + ":" +
-                location.getY() + ":" +
-                location.getZ() + ":" +
-                location.getYaw() + ":" +
+        return location.getWorld().getName() + SEPARATOR +
+                location.getX() + SEPARATOR +
+                location.getY() + SEPARATOR +
+                location.getZ() + SEPARATOR +
+                location.getYaw() + SEPARATOR +
                 location.getPitch();
     }
 
@@ -24,7 +26,7 @@ public class LocationSerializer {
             return null;
         }
 
-        String[] parts = string.split(":");
+        String[] parts = string.split(SEPARATOR);
 
         if (parts.length < 4) {
             return null;

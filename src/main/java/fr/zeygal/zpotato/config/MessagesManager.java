@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MessagesManager {
 
@@ -16,11 +17,12 @@ public class MessagesManager {
     private FileConfiguration messagesConfig;
     private final File messagesFile;
     private final Map<String, String> messages;
+    private String prefix;
 
     public MessagesManager(Main plugin) {
         this.plugin = plugin;
         this.messagesFile = new File(plugin.getDataFolder(), "messages.yml");
-        this.messages = new HashMap<>();
+        this.messages = new ConcurrentHashMap<>();
     }
 
     public void loadMessages() {
@@ -29,20 +31,18 @@ public class MessagesManager {
         }
 
         messagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
+        messages.clear();
 
-        for (String key : messagesConfig.getKeys(true)) {
-            if (messagesConfig.isString(key)) {
-                messages.put(key, ChatColor.translateAlternateColorCodes('&', messagesConfig.getString(key)));
-            }
-        }
+        messagesConfig.getKeys(true).stream()
+                .filter(key -> messagesConfig.isString(key))
+                .forEach(key -> messages.put(key, ChatColor.translateAlternateColorCodes('&', messagesConfig.getString(key))));
+
+        prefix = messages.getOrDefault("prefix", "&6[&eZPotato&6]&r");
     }
 
     public String getMessage(String key) {
         String message = messages.getOrDefault(key, "Message not found: " + key);
-
-        message = message.replace("{prefix}", getPrefix());
-
-        return message;
+        return message.replace("{prefix}", getPrefix());
     }
 
     public String getMessage(String key, Map<String, String> replacements) {
@@ -69,6 +69,6 @@ public class MessagesManager {
     }
 
     public String getPrefix() {
-        return messages.getOrDefault("prefix", "&6[&eZPotato&6]&r");
+        return prefix;
     }
 }

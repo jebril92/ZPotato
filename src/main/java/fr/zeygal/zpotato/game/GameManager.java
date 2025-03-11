@@ -8,6 +8,8 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class GameManager {
 
@@ -19,7 +21,7 @@ public class GameManager {
 
     public GameManager(Main plugin) {
         this.plugin = plugin;
-        this.activeGames = new HashMap<>();
+        this.activeGames = new ConcurrentHashMap<>();
         this.random = new Random();
         this.countdownTasks = new HashMap<>();
         this.spectators = new HashMap<>();
@@ -267,9 +269,7 @@ public class GameManager {
 
     public void transferPotato(UUID fromPlayerId, UUID toPlayerId, String arenaName) {
         HotPotatoGame game = activeGames.get(arenaName);
-        if (game == null) return;
-
-        if (!fromPlayerId.equals(game.getPotatoHolder())) {
+        if (game == null || !fromPlayerId.equals(game.getPotatoHolder())) {
             return;
         }
 
@@ -283,19 +283,17 @@ public class GameManager {
             replacements.put("from", fromPlayer.getName());
             replacements.put("to", toPlayer.getName());
 
+            String transferMessage = plugin.getMessagesManager().getMessage("game.potato-transferred", replacements);
+
             game.getArena().getPlayers().stream()
                     .map(Bukkit::getPlayer)
                     .filter(Objects::nonNull)
-                    .forEach(player ->
-                            player.sendMessage(plugin.getMessagesManager().getMessage("game.potato-transferred", replacements))
-                    );
+                    .forEach(player -> player.sendMessage(transferMessage));
 
-            spectators.getOrDefault(arenaName, new ArrayList<>()).stream()
+            spectators.getOrDefault(arenaName, Collections.emptyList()).stream()
                     .map(Bukkit::getPlayer)
                     .filter(Objects::nonNull)
-                    .forEach(player ->
-                            player.sendMessage(plugin.getMessagesManager().getMessage("game.potato-transferred", replacements))
-                    );
+                    .forEach(player -> player.sendMessage(transferMessage));
         }
 
         game.restartPotatoTimer();
@@ -310,11 +308,10 @@ public class GameManager {
     }
 
     public boolean isSpectator(UUID playerId, String arenaName) {
-        List<UUID> arenaSpectators = spectators.getOrDefault(arenaName, new ArrayList<>());
-        return arenaSpectators.contains(playerId);
+        return spectators.getOrDefault(arenaName, Collections.emptyList()).contains(playerId);
     }
 
     public List<UUID> getSpectators(String arenaName) {
-        return new ArrayList<>(spectators.getOrDefault(arenaName, new ArrayList<>()));
+        return new ArrayList<>(spectators.getOrDefault(arenaName, Collections.emptyList()));
     }
 }

@@ -15,6 +15,5 @@ public abstract class GUI {
     public abstract int getSize();
 
     public void onClose(Player player) {
-
     }
 }

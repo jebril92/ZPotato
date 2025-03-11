@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,18 +42,27 @@ public class ArenaListGUI extends GUI {
             String statusText;
             List<String> lore = new ArrayList<>();
 
-            if (arena.getState() == ArenaState.RUNNING) {
-                material = Material.RED_CONCRETE;
-                statusText = "§c§lRUNNING";
-            } else if (arena.getState() == ArenaState.STARTING) {
-                material = Material.YELLOW_CONCRETE;
-                statusText = "§e§lSTARTING";
-            } else if (!arena.isValid()) {
-                material = Material.GRAY_CONCRETE;
-                statusText = "§7§lINCOMPLETE";
-            } else {
-                material = Material.GREEN_CONCRETE;
-                statusText = "§a§lAVAILABLE";
+            switch (arena.getState()) {
+                case RUNNING:
+                    material = Material.RED_CONCRETE;
+                    statusText = "§c§lRUNNING";
+                    break;
+                case STARTING:
+                    material = Material.YELLOW_CONCRETE;
+                    statusText = "§e§lSTARTING";
+                    break;
+                case WAITING:
+                    if (arena.isValid()) {
+                        material = Material.GREEN_CONCRETE;
+                        statusText = "§a§lAVAILABLE";
+                    } else {
+                        material = Material.GRAY_CONCRETE;
+                        statusText = "§7§lINCOMPLETE";
+                    }
+                    break;
+                default:
+                    material = Material.GRAY_CONCRETE;
+                    statusText = "§7§lINCOMPLETE";
             }
 
             lore.add("§7Status: " + statusText);
@@ -61,23 +71,9 @@ public class ArenaListGUI extends GUI {
             lore.add("§7Potato duration: §e" + arena.getPotatoTimer() + "s");
             lore.add("");
 
-            if (arena.getLobby() == null) {
-                lore.add("§c✘ Lobby not defined");
-            } else {
-                lore.add("§a✓ Lobby defined");
-            }
-
-            if (arena.getSpectatorLocation() == null) {
-                lore.add("§c✘ Spectator area not defined");
-            } else {
-                lore.add("§a✓ Spectator area defined");
-            }
-
-            if (arena.getSpawnLocations().isEmpty()) {
-                lore.add("§c✘ No spawn points");
-            } else {
-                lore.add("§a✓ Spawn points: §e" + arena.getSpawnLocations().size());
-            }
+            lore.add(arena.getLobby() == null ? "§c✘ Lobby not defined" : "§a✓ Lobby defined");
+            lore.add(arena.getSpectatorLocation() == null ? "§c✘ Spectator area not defined" : "§a✓ Spectator area defined");
+            lore.add(arena.getSpawnLocations().isEmpty() ? "§c✘ No spawn points" : "§a✓ Spawn points: §e" + arena.getSpawnLocations().size());
 
             lore.add("");
             lore.add("§e➜ Left click to manage this arena");
@@ -134,7 +130,8 @@ public class ArenaListGUI extends GUI {
         if (slot >= 10 && slot < 44) {
             ItemStack clickedItem = event.getCurrentItem();
             if (clickedItem != null && clickedItem.hasItemMeta() && clickedItem.getItemMeta().hasDisplayName()) {
-                String arenaName = clickedItem.getItemMeta().getDisplayName().substring(4);
+                ItemMeta meta = clickedItem.getItemMeta();
+                String arenaName = meta.getDisplayName().substring(4); // Remove "§6§l" prefix
                 Arena arena = plugin.getArenaManager().getArena(arenaName);
 
                 if (arena != null) {
@@ -143,23 +140,29 @@ public class ArenaListGUI extends GUI {
                         plugin.getGUIManager().openGUI(player, "arena_settings", arenaName);
                     }
                     else if (event.isRightClick()) {
-                        if (arena.getState() == ArenaState.WAITING) {
-                            if (arena.canStart()) {
-                                plugin.getGameManager().startGame(arenaName);
-                                player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aStarting game in arena §e" + arenaName + "§a.");
-                            } else {
-                                player.sendMessage(plugin.getMessagesManager().getPrefix() + " §cArena §e" + arenaName + " §ccannot be started. Check the configuration.");
-                            }
-                        } else if (arena.getState() == ArenaState.RUNNING || arena.getState() == ArenaState.STARTING) {
-                            plugin.getGameManager().stopGame(arenaName);
-                            player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aStopping game in arena §e" + arenaName + "§a.");
-                        }
-
-                        plugin.getGUIManager().refreshGUI(player);
+                        handleArenaStateToggle(player, arena);
                     }
                 }
             }
         }
+    }
+
+    private void handleArenaStateToggle(Player player, Arena arena) {
+        String arenaName = arena.getName();
+
+        if (arena.getState() == ArenaState.WAITING) {
+            if (arena.canStart()) {
+                plugin.getGameManager().startGame(arenaName);
+                player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aStarting game in arena §e" + arenaName + "§a.");
+            } else {
+                player.sendMessage(plugin.getMessagesManager().getPrefix() + " §cArena §e" + arenaName + " §ccannot be started. Check the configuration.");
+            }
+        } else if (arena.getState() == ArenaState.RUNNING || arena.getState() == ArenaState.STARTING) {
+            plugin.getGameManager().stopGame(arenaName);
+            player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aStopping game in arena §e" + arenaName + "§a.");
+        }
+
+        plugin.getGUIManager().refreshGUI(player);
     }
 
     @Override

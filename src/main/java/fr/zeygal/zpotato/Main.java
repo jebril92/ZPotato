@@ -50,12 +50,16 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (gameManager != null) {
+            gameManager.stopAllGames();
+        }
+
         if (arenaManager != null) {
             arenaManager.saveArenas();
         }
 
-        if (gameManager != null) {
-            gameManager.stopAllGames();
+        if (playerManager != null) {
+            playerManager.savePlayers();
         }
 
         getLogger().info("ZPotato plugin has been disabled!");

@@ -15,7 +15,9 @@ import org.bukkit.scoreboard.Team;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class HotPotatoGame {
 
@@ -78,11 +80,10 @@ public class HotPotatoGame {
             }
 
             plugin.getPlayerManager().setHotPotato(potatoHolder, true);
-
-            updateGlowEffects();
-            updateNameColors();
         }
 
+        updateGlowEffects();
+        updateNameColors();
         startActionBarTimer();
         startGlowEffectTask();
 
@@ -132,31 +133,33 @@ public class HotPotatoGame {
         arena.getPlayers().stream()
                 .filter(uuid -> !uuid.equals(potatoHolder))
                 .map(Bukkit::getPlayer)
-                .filter(player -> player != null)
+                .filter(Objects::nonNull)
                 .forEach(player -> otherPlayersTeam.addEntry(player.getName()));
 
         arena.getPlayers().stream()
                 .map(Bukkit::getPlayer)
-                .filter(player -> player != null)
+                .filter(Objects::nonNull)
                 .forEach(player -> player.setScoreboard(scoreboard));
 
         plugin.getGameManager().getSpectators(arena.getName()).stream()
                 .map(Bukkit::getPlayer)
-                .filter(player -> player != null)
+                .filter(Objects::nonNull)
                 .forEach(player -> player.setScoreboard(scoreboard));
     }
 
     private void updateGlowEffects() {
+        // Remove effect from all players
         arena.getPlayers().stream()
                 .map(Bukkit::getPlayer)
-                .filter(player -> player != null)
+                .filter(Objects::nonNull)
                 .forEach(player -> player.removePotionEffect(PotionEffectType.GLOWING));
 
         plugin.getGameManager().getSpectators(arena.getName()).stream()
                 .map(Bukkit::getPlayer)
-                .filter(player -> player != null)
+                .filter(Objects::nonNull)
                 .forEach(player -> player.removePotionEffect(PotionEffectType.GLOWING));
 
+        // Add effect only to potato holder
         Player potatoPlayer = Bukkit.getPlayer(potatoHolder);
         if (potatoPlayer != null) {
             potatoPlayer.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 40, 0, false, false));
@@ -168,9 +171,7 @@ public class HotPotatoGame {
             Bukkit.getScheduler().cancelTask(actionBarTaskId);
         }
 
-        actionBarTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
-            updateActionBar();
-        }, 0L, 5L);
+        actionBarTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, this::updateActionBar, 0L, 5L);
     }
 
     private void updateActionBar() {
@@ -189,9 +190,7 @@ public class HotPotatoGame {
 
             StringBuilder progressBar = new StringBuilder();
             progressBar.append("▃▄▅▆▇");
-
-            progressBar.append(" " + potatoTimeLeft + " ");
-
+            progressBar.append(" ").append(potatoTimeLeft).append(" ");
             progressBar.append("▇▆▅▄▃");
 
             String message = color + progressBar.toString();
@@ -213,6 +212,7 @@ public class HotPotatoGame {
     }
 
     public void stopPotatoTimer() {
+        // Cancel timer tasks
         if (potatoTimerTaskId != -1) {
             Bukkit.getScheduler().cancelTask(potatoTimerTaskId);
             potatoTimerTaskId = -1;
@@ -228,6 +228,7 @@ public class HotPotatoGame {
             glowEffectTaskId = -1;
         }
 
+        // Reset potato holder
         if (potatoHolder != null) {
             plugin.getPlayerManager().setHotPotato(potatoHolder, false);
 
@@ -239,16 +240,22 @@ public class HotPotatoGame {
             }
         }
 
+        // Remove glowing effect from all players
         arena.getPlayers().stream()
                 .map(Bukkit::getPlayer)
-                .filter(player -> player != null)
+                .filter(Objects::nonNull)
                 .forEach(player -> player.removePotionEffect(PotionEffectType.GLOWING));
 
         plugin.getGameManager().getSpectators(arena.getName()).stream()
                 .map(Bukkit::getPlayer)
-                .filter(player -> player != null)
+                .filter(Objects::nonNull)
                 .forEach(player -> player.removePotionEffect(PotionEffectType.GLOWING));
 
+        // Reset scoreboard
+        resetScoreboard();
+    }
+
+    private void resetScoreboard() {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         if (manager != null) {
             Scoreboard mainScoreboard = manager.getMainScoreboard();
@@ -263,12 +270,12 @@ public class HotPotatoGame {
 
             arena.getPlayers().stream()
                     .map(Bukkit::getPlayer)
-                    .filter(player -> player != null)
+                    .filter(Objects::nonNull)
                     .forEach(player -> player.setScoreboard(mainScoreboard));
 
             plugin.getGameManager().getSpectators(arena.getName()).stream()
                     .map(Bukkit::getPlayer)
-                    .filter(player -> player != null)
+                    .filter(Objects::nonNull)
                     .forEach(player -> player.setScoreboard(mainScoreboard));
         }
     }
@@ -280,7 +287,6 @@ public class HotPotatoGame {
             if (player != null) {
                 player.getWorld().createExplosion(player.getLocation(), 0.0f, false, false);
                 player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.0f);
-
                 plugin.getPlayerManager().incrementExplosionsProvoked(potatoHolder);
             }
 

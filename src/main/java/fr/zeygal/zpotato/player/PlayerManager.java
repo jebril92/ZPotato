@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Function;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PlayerManager {
 
@@ -22,7 +22,7 @@ public class PlayerManager {
 
     public PlayerManager(Main plugin) {
         this.plugin = plugin;
-        this.players = new HashMap<>();
+        this.players = new ConcurrentHashMap<>();
         this.playersFile = new File(plugin.getDataFolder(), "players.yml");
 
         loadPlayers();
@@ -45,19 +45,18 @@ public class PlayerManager {
         ConfigurationSection playersSection = playersConfig.getConfigurationSection("players");
 
         if (playersSection != null) {
-            playersSection.getKeys(false).stream()
-                    .forEach(uuidStr -> {
-                        try {
-                            UUID uuid = UUID.fromString(uuidStr);
-                            ConfigurationSection playerSection = playersSection.getConfigurationSection(uuidStr);
-                            if (playerSection != null) {
-                                HPPlayer hpPlayer = HPPlayer.loadFromConfig(playerSection, uuid);
-                                players.put(uuid, hpPlayer);
-                            }
-                        } catch (IllegalArgumentException e) {
-                            plugin.getLogger().warning("Invalid UUID in players file: " + uuidStr);
-                        }
-                    });
+            playersSection.getKeys(false).forEach(uuidStr -> {
+                try {
+                    UUID uuid = UUID.fromString(uuidStr);
+                    ConfigurationSection playerSection = playersSection.getConfigurationSection(uuidStr);
+                    if (playerSection != null) {
+                        HPPlayer hpPlayer = HPPlayer.loadFromConfig(playerSection, uuid);
+                        players.put(uuid, hpPlayer);
+                    }
+                } catch (IllegalArgumentException e) {
+                    plugin.getLogger().warning("Invalid UUID in players file: " + uuidStr);
+                }
+            });
         }
     }
 
@@ -97,30 +96,16 @@ public class PlayerManager {
         getPlayer(playerId).setHasHotPotato(hasHotPotato);
     }
 
-    private void applyPlayerOperation(UUID playerId, Function<HPPlayer, Void> operation) {
-        HPPlayer player = getPlayer(playerId);
-        operation.apply(player);
-    }
-
     public void incrementGamesPlayed(UUID playerId) {
-        applyPlayerOperation(playerId, player -> {
-            player.incrementGamesPlayed();
-            return null;
-        });
+        getPlayer(playerId).incrementGamesPlayed();
     }
 
     public void incrementWins(UUID playerId) {
-        applyPlayerOperation(playerId, player -> {
-            player.incrementWins();
-            return null;
-        });
+        getPlayer(playerId).incrementWins();
     }
 
     public void incrementExplosionsProvoked(UUID playerId) {
-        applyPlayerOperation(playerId, player -> {
-            player.incrementExplosionsProvoked();
-            return null;
-        });
+        getPlayer(playerId).incrementExplosionsProvoked();
     }
 
     public int getGamesPlayed(UUID playerId) {

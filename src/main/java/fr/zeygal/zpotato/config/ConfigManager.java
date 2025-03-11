@@ -19,7 +19,6 @@ public class ConfigManager {
 
     public void loadConfig() {
         plugin.saveDefaultConfig();
-
         plugin.reloadConfig();
         config = plugin.getConfig();
 
@@ -30,7 +29,6 @@ public class ConfigManager {
 
         defaultPotatoTimer = config.getInt("default-potato-timer", 20);
         countdownTime = config.getInt("countdown-time", 30);
-
     }
 
     public void saveConfig() {
