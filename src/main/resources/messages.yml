@@ -117,6 +117,16 @@ game:
 
   cannot-teleport: "{prefix} &cYou cannot teleport during a game!"
 
+gui:
+  spawn-visualization-started: "{prefix} &aVisualization of spawn points started. Will last for 30 seconds."
+  spawn-visualization-ended: "{prefix} &aVisualization of spawn points ended."
+  no-spawn-points: "{prefix} &cThis arena has no spawn points to visualize."
+  teleported-to-spawn: "{prefix} &aTeleported to spawn point #&e{number}&a."
+  spawn-point-added: "{prefix} &aA spawn point has been added to the arena &e{arena}&a."
+  spawn-point-removed: "{prefix} &aSpawn point #&e{number} &ahas been removed."
+  all-spawn-points-removed: "{prefix} &aAll spawn points have been removed from arena &e{arena}&a."
+  arena-settings-updated: "{prefix} &aArena settings updated successfully."
+
 # Countdown messages
 countdown:
   message: "{prefix} &aThe game starts in &e{time} &aseconds!"

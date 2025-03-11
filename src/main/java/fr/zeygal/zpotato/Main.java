@@ -5,6 +5,8 @@ import fr.zeygal.zpotato.commands.CommandManager;
 import fr.zeygal.zpotato.config.ConfigManager;
 import fr.zeygal.zpotato.config.MessagesManager;
 import fr.zeygal.zpotato.game.GameManager;
+import fr.zeygal.zpotato.gui.GUIListener;
+import fr.zeygal.zpotato.gui.GUIManager;
 import fr.zeygal.zpotato.listeners.GameListener;
 import fr.zeygal.zpotato.listeners.PlayerListener;
 import fr.zeygal.zpotato.player.PlayerManager;
@@ -19,6 +21,7 @@ public final class Main extends JavaPlugin {
     private PlayerManager playerManager;
     private GameManager gameManager;
     private CommandManager commandManager;
+    private GUIManager guiManager;
 
     @Override
     public void onEnable() {
@@ -29,6 +32,7 @@ public final class Main extends JavaPlugin {
         this.arenaManager = new ArenaManager(this);
         this.playerManager = new PlayerManager(this);
         this.gameManager = new GameManager(this);
+        this.guiManager = new GUIManager(this);  // Initialisation du GUIManager
 
         this.configManager.loadConfig();
         this.messagesManager.loadMessages();
@@ -39,6 +43,7 @@ public final class Main extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
         getServer().getPluginManager().registerEvents(new GameListener(this), this);
+        getServer().getPluginManager().registerEvents(new GUIListener(this), this);  // Enregistrement du GUIListener
 
         getLogger().info("ZPotato plugin has been enabled!");
     }
@@ -78,5 +83,9 @@ public final class Main extends JavaPlugin {
 
     public GameManager getGameManager() {
         return gameManager;
+    }
+
+    public GUIManager getGUIManager() {
+        return guiManager;
     }
 }

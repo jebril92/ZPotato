@@ -16,6 +16,19 @@ permissions:
     default: op
     children:
       hotpotato.user: true
+      hotpotato.admin.create: true
+      hotpotato.admin.delete: true
+      hotpotato.admin.addspawn: true
+      hotpotato.admin.setlobby: true
+      hotpotato.admin.setspectate: true
+      hotpotato.admin.settings: true
+      hotpotato.admin.start: true
+      hotpotato.admin.stop: true
+      hotpotato.admin.setmainlobby: true
+      hotpotato.admin.unsetmainlobby: true
+      hotpotato.admin.list: true
+      hotpotato.admin.reload: true
+      hotpotato.admin.gui: true
 
   hotpotato.user:
     description: Grants access to basic player commands
@@ -67,6 +80,10 @@ permissions:
 
   hotpotato.admin.reload:
     description: Allows reloading the plugin
+    default: op
+
+  hotpotato.admin.gui:
+    description: Allows using the GUI admin tools
     default: op
 
   hotpotato.user.join:

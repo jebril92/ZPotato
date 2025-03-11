@@ -8,6 +8,16 @@ import org.bukkit.entity.Player;
 
 import org.bukkit.command.Command;
 
+import fr.zeygal.zpotato.Main;
+import fr.zeygal.zpotato.arena.Arena;
+import fr.zeygal.zpotato.arena.ArenaState;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Player;
+
+import org.bukkit.command.Command;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -68,6 +78,10 @@ public class CommandManager implements CommandExecutor, TabCompleter {
             return handleStatsCommand(sender, args);
         }
 
+        else if (subCommand.equals("gui") || subCommand.equals("admin")) {
+            return handleGUICommand(sender, args);
+        }
+
         else {
             sender.sendMessage(plugin.getMessagesManager().getMessage("command.unknown"));
             return true;
@@ -85,7 +99,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
                 subCommands.addAll(Arrays.asList(
                         "create", "delete", "addspawn", "setlobby", "setspectate",
                         "settings", "start", "stop", "setmainlobby", "unsetmainlobby",
-                        "list", "reload"
+                        "list", "reload", "gui", "admin"  // Ajout des nouvelles commandes
                 ));
             }
 
@@ -113,10 +127,93 @@ public class CommandManager implements CommandExecutor, TabCompleter {
                     }
                 }
             }
+
+            // Autocomplétion pour les sous-commandes GUI
+            if ((subCommand.equals("gui") || subCommand.equals("admin")) && sender.hasPermission("hotpotato.admin")) {
+                List<String> guiSubCommands = Arrays.asList("arena", "spawns");
+                for (String guiSubCommand : guiSubCommands) {
+                    if (guiSubCommand.startsWith(args[1].toLowerCase())) {
+                        completions.add(guiSubCommand);
+                    }
+                }
+            }
+        } else if (args.length == 3) {
+            String subCommand = args[0].toLowerCase();
+            String subSubCommand = args[1].toLowerCase();
+
+            // Autocomplétion pour les arènes dans les commandes GUI
+            if ((subCommand.equals("gui") || subCommand.equals("admin")) &&
+                    (subSubCommand.equals("arena") || subSubCommand.equals("spawns")) &&
+                    sender.hasPermission("hotpotato.admin")) {
+
+                List<String> arenaNames = new ArrayList<>(plugin.getArenaManager().getAllArenas().keySet());
+                for (String arenaName : arenaNames) {
+                    if (arenaName.startsWith(args[2])) {
+                        completions.add(arenaName);
+                    }
+                }
+            }
         }
 
         return completions;
     }
+
+    private boolean handleGUICommand(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(plugin.getMessagesManager().getMessage("command.player-only"));
+            return true;
+        }
+
+        if (!sender.hasPermission("hotpotato.admin")) {
+            sender.sendMessage(plugin.getMessagesManager().getMessage("permission.denied"));
+            return true;
+        }
+
+        Player player = (Player) sender;
+
+        if (args.length >= 2) {
+            String guiSubCommand = args[1].toLowerCase();
+
+            if (guiSubCommand.equals("arena")) {
+                if (args.length >= 3) {
+                    String arenaName = args[2];
+                    Arena arena = plugin.getArenaManager().getArena(arenaName);
+
+                    if (arena == null) {
+                        sender.sendMessage(plugin.getMessagesManager().getMessage("command.arena-not-found").replace("{arena}", arenaName));
+                        return true;
+                    }
+
+                    plugin.getGUIManager().openGUI(player, "arena_settings", arenaName);
+                    return true;
+                } else {
+                    sender.sendMessage(plugin.getMessagesManager().getPrefix() + " §cUtilisation: §e/hp " + args[0] + " arena <nom_arène>");
+                    return true;
+                }
+            } else if (guiSubCommand.equals("spawns")) {
+                if (args.length >= 3) {
+                    String arenaName = args[2];
+                    Arena arena = plugin.getArenaManager().getArena(arenaName);
+
+                    if (arena == null) {
+                        sender.sendMessage(plugin.getMessagesManager().getMessage("command.arena-not-found").replace("{arena}", arenaName));
+                        return true;
+                    }
+
+                    plugin.getGUIManager().openGUI(player, "spawn_manager", arenaName);
+                    return true;
+                } else {
+                    sender.sendMessage(plugin.getMessagesManager().getPrefix() + " §cUtilisation: §e/hp " + args[0] + " spawns <nom_arène>");
+                    return true;
+                }
+            }
+        }
+
+        // Par défaut, ouvrir la liste des arènes
+        plugin.getGUIManager().openGUI(player, "arena_list");
+        return true;
+    }
+
 
 
     private void sendHelp(CommandSender sender) {
@@ -141,6 +238,8 @@ public class CommandManager implements CommandExecutor, TabCompleter {
             sender.sendMessage("§c/hp unsetmainlobby §7- Unset the main lobby");
             sender.sendMessage("§c/hp list §7- List all arenas");
             sender.sendMessage("§c/hp reload §7- Reload the plugin");
+            sender.sendMessage("§c/hp gui §7- Open the GUI arena manager");
+            sender.sendMessage("§c/hp admin §7- Alias for gui command");
         }
     }
 
