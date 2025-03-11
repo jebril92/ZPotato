@@ -6,6 +6,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,10 +46,10 @@ public class Arena {
             config.set(path + ".spectator", LocationSerializer.locationToString(spectatorLocation));
         }
 
-        List<String> spawns = new ArrayList<>();
-        for (Location spawn : spawnLocations) {
-            spawns.add(LocationSerializer.locationToString(spawn));
-        }
+        List<String> spawns = spawnLocations.stream()
+                .map(LocationSerializer::locationToString)
+                .collect(java.util.stream.Collectors.toList());
+
         config.set(path + ".spawns", spawns);
     }
 
@@ -70,12 +71,10 @@ public class Arena {
         }
 
         List<String> spawnStrs = section.getStringList("spawns");
-        for (String spawnStr : spawnStrs) {
-            Location spawn = LocationSerializer.stringToLocation(spawnStr);
-            if (spawn != null) {
-                arena.addSpawnLocation(spawn);
-            }
-        }
+        spawnStrs.stream()
+                .map(LocationSerializer::stringToLocation)
+                .filter(location -> location != null)
+                .forEach(arena::addSpawnLocation);
 
         return arena;
     }
@@ -144,7 +143,7 @@ public class Arena {
     }
 
     public List<Location> getSpawnLocations() {
-        return new ArrayList<>(spawnLocations);
+        return Collections.unmodifiableList(spawnLocations);
     }
 
     public void addSpawnLocation(Location spawn) {
@@ -168,7 +167,7 @@ public class Arena {
     }
 
     public List<UUID> getPlayers() {
-        return new ArrayList<>(players);
+        return Collections.unmodifiableList(players);
     }
 
     public int getPlayerCount() {

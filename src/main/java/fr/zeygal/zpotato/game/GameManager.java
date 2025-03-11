@@ -15,12 +15,14 @@ public class GameManager {
     private final Map<String, HotPotatoGame> activeGames;
     private final Random random;
     private final Map<String, Integer> countdownTasks;
+    private final Map<String, List<UUID>> spectators;
 
     public GameManager(Main plugin) {
         this.plugin = plugin;
         this.activeGames = new HashMap<>();
         this.random = new Random();
         this.countdownTasks = new HashMap<>();
+        this.spectators = new HashMap<>();
     }
 
     public boolean startGame(String arenaName) {
@@ -33,6 +35,8 @@ public class GameManager {
         if (arena.getPlayerCount() < arena.getMinPlayers()) {
             return false;
         }
+
+        spectators.put(arenaName, new ArrayList<>());
 
         HotPotatoGame game = new HotPotatoGame(plugin, arena);
         activeGames.put(arenaName, game);
@@ -63,17 +67,17 @@ public class GameManager {
             }
 
             if (countdown[0] <= 5 || countdown[0] == 10 || countdown[0] == 20 || countdown[0] == 30) {
-                for (UUID playerId : arena.getPlayers()) {
-                    Player player = Bukkit.getPlayer(playerId);
-                    if (player != null) {
-                        Map<String, String> replacements = new HashMap<>();
-                        replacements.put("time", String.valueOf(countdown[0]));
-                        replacements.put("arena", arena.getName());
+                arena.getPlayers().stream()
+                        .map(Bukkit::getPlayer)
+                        .filter(Objects::nonNull)
+                        .forEach(player -> {
+                            Map<String, String> replacements = new HashMap<>();
+                            replacements.put("time", String.valueOf(countdown[0]));
+                            replacements.put("arena", arena.getName());
 
-                        String message = plugin.getMessagesManager().getMessage("countdown.message", replacements);
-                        player.sendMessage(message);
-                    }
-                }
+                            String message = plugin.getMessagesManager().getMessage("countdown.message", replacements);
+                            player.sendMessage(message);
+                        });
             }
 
             countdown[0]--;
@@ -99,12 +103,7 @@ public class GameManager {
         }
 
         List<UUID> shuffledPlayers = new ArrayList<>(playerIds);
-        for (int i = 0; i < shuffledPlayers.size(); i++) {
-            int j = random.nextInt(shuffledPlayers.size());
-            UUID temp = shuffledPlayers.get(i);
-            shuffledPlayers.set(i, shuffledPlayers.get(j));
-            shuffledPlayers.set(j, temp);
-        }
+        Collections.shuffle(shuffledPlayers, random);
 
         for (int i = 0; i < shuffledPlayers.size(); i++) {
             UUID playerId = shuffledPlayers.get(i);
@@ -141,23 +140,40 @@ public class GameManager {
             countdownTasks.remove(arenaName);
         }
 
-        for (UUID playerId : arena.getPlayers()) {
+        Location mainLobby = plugin.getConfigManager().getMainLobby();
+        if (mainLobby == null) {
+            plugin.getLogger().warning("Main lobby not set! Players will not be teleported.");
+        }
+
+        UUID lastEliminatedPlayer = null;
+        List<UUID> spectatorsList = spectators.getOrDefault(arenaName, new ArrayList<>());
+        if (!spectatorsList.isEmpty()) {
+            lastEliminatedPlayer = spectatorsList.get(spectatorsList.size() - 1);
+        }
+
+        List<UUID> allActivePlayers = new ArrayList<>(arena.getPlayers());
+
+        allActivePlayers.forEach(playerId -> {
             Player player = Bukkit.getPlayer(playerId);
             if (player != null) {
-                Location lobbyLocation = arena.getLobby();
-                if (lobbyLocation == null) {
-                    lobbyLocation = plugin.getConfigManager().getMainLobby();
-                }
+                teleportToMainLobby(player, arena, mainLobby);
+                arena.removePlayer(playerId);
+            }
+        });
 
-                if (lobbyLocation != null) {
-                    player.teleport(lobbyLocation);
-                }
+        spectatorsList.stream()
+                .map(Bukkit::getPlayer)
+                .filter(Objects::nonNull)
+                .forEach(player -> teleportToMainLobby(player, arena, mainLobby));
 
-                Map<String, String> replacements = new HashMap<>();
-                replacements.put("arena", arena.getName());
-                player.sendMessage(plugin.getMessagesManager().getMessage("game.stop", replacements));
+        if (lastEliminatedPlayer != null) {
+            Player lastEliminated = Bukkit.getPlayer(lastEliminatedPlayer);
+            if (lastEliminated != null) {
+                teleportToMainLobby(lastEliminated, arena, mainLobby);
             }
         }
+
+        spectators.remove(arenaName);
 
         arena.setState(ArenaState.WAITING);
         activeGames.remove(arenaName);
@@ -165,15 +181,33 @@ public class GameManager {
         return true;
     }
 
-    public void stopAllGames() {
-        for (String arenaName : new ArrayList<>(activeGames.keySet())) {
-            stopGame(arenaName);
-        }
+    private void teleportToMainLobby(Player player, Arena arena, Location mainLobby) {
+        if (mainLobby != null) {
+            player.teleport(mainLobby);
 
-        for (String arenaName : new ArrayList<>(countdownTasks.keySet())) {
-            Bukkit.getScheduler().cancelTask(countdownTasks.get(arenaName));
+            Map<String, String> replacements = new HashMap<>();
+            replacements.put("arena", arena.getName());
+            player.sendMessage(plugin.getMessagesManager().getMessage("game.stop", replacements));
+
+            player.sendMessage(plugin.getMessagesManager().getMessage("game.teleported-to-main-lobby"));
+        } else {
+            Location lobbyLocation = arena.getLobby();
+            if (lobbyLocation != null) {
+                player.teleport(lobbyLocation);
+            }
+
+            Map<String, String> replacements = new HashMap<>();
+            replacements.put("arena", arena.getName());
+            player.sendMessage(plugin.getMessagesManager().getMessage("game.stop", replacements));
         }
+    }
+
+    public void stopAllGames() {
+        new ArrayList<>(activeGames.keySet()).forEach(this::stopGame);
+
+        countdownTasks.forEach((arenaName, taskId) -> Bukkit.getScheduler().cancelTask(taskId));
         countdownTasks.clear();
+        spectators.clear();
     }
 
     public void eliminatePlayer(UUID playerId, String arenaName) {
@@ -190,14 +224,15 @@ public class GameManager {
             replacements.put("player", player.getName());
             player.sendMessage(plugin.getMessagesManager().getMessage("game.eliminated", replacements));
 
-            for (UUID otherPlayerId : arena.getPlayers()) {
-                if (!otherPlayerId.equals(playerId)) {
-                    Player otherPlayer = Bukkit.getPlayer(otherPlayerId);
-                    if (otherPlayer != null) {
-                        otherPlayer.sendMessage(plugin.getMessagesManager().getMessage("game.player-eliminated", replacements));
-                    }
-                }
-            }
+            arena.getPlayers().stream()
+                    .filter(id -> !id.equals(playerId))
+                    .map(Bukkit::getPlayer)
+                    .filter(Objects::nonNull)
+                    .forEach(otherPlayer ->
+                            otherPlayer.sendMessage(plugin.getMessagesManager().getMessage("game.player-eliminated", replacements))
+                    );
+
+            spectators.computeIfAbsent(arenaName, k -> new ArrayList<>()).add(playerId);
         }
 
         arena.removePlayer(playerId);
@@ -248,12 +283,19 @@ public class GameManager {
             replacements.put("from", fromPlayer.getName());
             replacements.put("to", toPlayer.getName());
 
-            for (UUID playerId : game.getArena().getPlayers()) {
-                Player player = Bukkit.getPlayer(playerId);
-                if (player != null) {
-                    player.sendMessage(plugin.getMessagesManager().getMessage("game.potato-transferred", replacements));
-                }
-            }
+            game.getArena().getPlayers().stream()
+                    .map(Bukkit::getPlayer)
+                    .filter(Objects::nonNull)
+                    .forEach(player ->
+                            player.sendMessage(plugin.getMessagesManager().getMessage("game.potato-transferred", replacements))
+                    );
+
+            spectators.getOrDefault(arenaName, new ArrayList<>()).stream()
+                    .map(Bukkit::getPlayer)
+                    .filter(Objects::nonNull)
+                    .forEach(player ->
+                            player.sendMessage(plugin.getMessagesManager().getMessage("game.potato-transferred", replacements))
+                    );
         }
 
         game.restartPotatoTimer();
@@ -265,5 +307,14 @@ public class GameManager {
 
     public boolean isGameActive(String arenaName) {
         return activeGames.containsKey(arenaName);
+    }
+
+    public boolean isSpectator(UUID playerId, String arenaName) {
+        List<UUID> arenaSpectators = spectators.getOrDefault(arenaName, new ArrayList<>());
+        return arenaSpectators.contains(playerId);
+    }
+
+    public List<UUID> getSpectators(String arenaName) {
+        return new ArrayList<>(spectators.getOrDefault(arenaName, new ArrayList<>()));
     }
 }

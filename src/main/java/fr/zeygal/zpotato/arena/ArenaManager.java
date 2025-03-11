@@ -10,7 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 import java.util.UUID;
 
 public class ArenaManager {
@@ -35,15 +35,19 @@ public class ArenaManager {
         ConfigurationSection arenasSection = arenasConfig.getConfigurationSection("arenas");
 
         if (arenasSection != null) {
-            Set<String> arenaNames = arenasSection.getKeys(false);
-            for (String arenaName : arenaNames) {
-                ConfigurationSection arenaSection = arenasSection.getConfigurationSection(arenaName);
-                if (arenaSection != null) {
-                    Arena arena = Arena.loadFromConfig(arenaSection, arenaName);
-                    arenas.put(arenaName, arena);
-                    plugin.getLogger().info("Loaded arena: " + arenaName);
-                }
-            }
+            arenasSection.getKeys(false).stream()
+                    .map(arenaName -> {
+                        ConfigurationSection arenaSection = arenasSection.getConfigurationSection(arenaName);
+                        if (arenaSection != null) {
+                            return Arena.loadFromConfig(arenaSection, arenaName);
+                        }
+                        return null;
+                    })
+                    .filter(arena -> arena != null)
+                    .forEach(arena -> {
+                        arenas.put(arena.getName(), arena);
+                        plugin.getLogger().info("Loaded arena: " + arena.getName());
+                    });
         }
     }
 
@@ -54,9 +58,7 @@ public class ArenaManager {
 
         arenasConfig.set("arenas", null);
 
-        for (Arena arena : arenas.values()) {
-            arena.saveToConfig(arenasConfig);
-        }
+        arenas.values().forEach(arena -> arena.saveToConfig(arenasConfig));
 
         try {
             arenasConfig.save(arenasFile);
@@ -96,12 +98,10 @@ public class ArenaManager {
     }
 
     public Arena getPlayerArena(UUID playerId) {
-        for (Arena arena : arenas.values()) {
-            if (arena.isPlayerInArena(playerId)) {
-                return arena;
-            }
-        }
-        return null;
+        return arenas.values().stream()
+                .filter(arena -> arena.isPlayerInArena(playerId))
+                .findFirst()
+                .orElse(null);
     }
 
     public Map<String, Arena> getAllArenas() {
@@ -109,7 +109,8 @@ public class ArenaManager {
     }
 
     public boolean isPlayerInAnyArena(UUID playerId) {
-        return getPlayerArena(playerId) != null;
+        return arenas.values().stream()
+                .anyMatch(arena -> arena.isPlayerInArena(playerId));
     }
 
     public boolean addPlayerToArena(Player player, String arenaName) {
@@ -148,11 +149,7 @@ public class ArenaManager {
     }
 
     public boolean removePlayerFromArena(Player player) {
-        Arena arena = getPlayerArena(player.getUniqueId());
-        if (arena == null) {
-            return false;
-        }
-
-        return arena.removePlayer(player.getUniqueId());
+        Optional<Arena> playerArenaOpt = Optional.ofNullable(getPlayerArena(player.getUniqueId()));
+        return playerArenaOpt.map(arena -> arena.removePlayer(player.getUniqueId())).orElse(false);
     }
 }

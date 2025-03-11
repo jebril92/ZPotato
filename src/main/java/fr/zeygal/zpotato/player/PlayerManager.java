@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 
 public class PlayerManager {
 
@@ -44,18 +45,19 @@ public class PlayerManager {
         ConfigurationSection playersSection = playersConfig.getConfigurationSection("players");
 
         if (playersSection != null) {
-            for (String uuidStr : playersSection.getKeys(false)) {
-                try {
-                    UUID uuid = UUID.fromString(uuidStr);
-                    ConfigurationSection playerSection = playersSection.getConfigurationSection(uuidStr);
-                    if (playerSection != null) {
-                        HPPlayer hpPlayer = HPPlayer.loadFromConfig(playerSection, uuid);
-                        players.put(uuid, hpPlayer);
-                    }
-                } catch (IllegalArgumentException e) {
-                    plugin.getLogger().warning("Invalid UUID in players file: " + uuidStr);
-                }
-            }
+            playersSection.getKeys(false).stream()
+                    .forEach(uuidStr -> {
+                        try {
+                            UUID uuid = UUID.fromString(uuidStr);
+                            ConfigurationSection playerSection = playersSection.getConfigurationSection(uuidStr);
+                            if (playerSection != null) {
+                                HPPlayer hpPlayer = HPPlayer.loadFromConfig(playerSection, uuid);
+                                players.put(uuid, hpPlayer);
+                            }
+                        } catch (IllegalArgumentException e) {
+                            plugin.getLogger().warning("Invalid UUID in players file: " + uuidStr);
+                        }
+                    });
         }
     }
 
@@ -67,10 +69,10 @@ public class PlayerManager {
         playersConfig.set("players", null);
         ConfigurationSection playersSection = playersConfig.createSection("players");
 
-        for (Map.Entry<UUID, HPPlayer> entry : players.entrySet()) {
-            ConfigurationSection playerSection = playersSection.createSection(entry.getKey().toString());
-            entry.getValue().saveToConfig(playerSection);
-        }
+        players.forEach((uuid, player) -> {
+            ConfigurationSection playerSection = playersSection.createSection(uuid.toString());
+            player.saveToConfig(playerSection);
+        });
 
         try {
             playersConfig.save(playersFile);
@@ -88,42 +90,48 @@ public class PlayerManager {
     }
 
     public boolean hasHotPotato(UUID playerId) {
-        HPPlayer hpPlayer = players.get(playerId);
-        return hpPlayer != null && hpPlayer.hasHotPotato();
+        return players.containsKey(playerId) && players.get(playerId).hasHotPotato();
     }
 
     public void setHotPotato(UUID playerId, boolean hasHotPotato) {
-        HPPlayer hpPlayer = getPlayer(playerId);
-        hpPlayer.setHasHotPotato(hasHotPotato);
+        getPlayer(playerId).setHasHotPotato(hasHotPotato);
+    }
+
+    private void applyPlayerOperation(UUID playerId, Function<HPPlayer, Void> operation) {
+        HPPlayer player = getPlayer(playerId);
+        operation.apply(player);
     }
 
     public void incrementGamesPlayed(UUID playerId) {
-        HPPlayer hpPlayer = getPlayer(playerId);
-        hpPlayer.incrementGamesPlayed();
+        applyPlayerOperation(playerId, player -> {
+            player.incrementGamesPlayed();
+            return null;
+        });
     }
 
     public void incrementWins(UUID playerId) {
-        HPPlayer hpPlayer = getPlayer(playerId);
-        hpPlayer.incrementWins();
+        applyPlayerOperation(playerId, player -> {
+            player.incrementWins();
+            return null;
+        });
     }
 
     public void incrementExplosionsProvoked(UUID playerId) {
-        HPPlayer hpPlayer = getPlayer(playerId);
-        hpPlayer.incrementExplosionsProvoked();
+        applyPlayerOperation(playerId, player -> {
+            player.incrementExplosionsProvoked();
+            return null;
+        });
     }
 
     public int getGamesPlayed(UUID playerId) {
-        HPPlayer hpPlayer = getPlayer(playerId);
-        return hpPlayer.getGamesPlayed();
+        return getPlayer(playerId).getGamesPlayed();
     }
 
     public int getWins(UUID playerId) {
-        HPPlayer hpPlayer = getPlayer(playerId);
-        return hpPlayer.getWins();
+        return getPlayer(playerId).getWins();
     }
 
     public int getExplosionsProvoked(UUID playerId) {
-        HPPlayer hpPlayer = getPlayer(playerId);
-        return hpPlayer.getExplosionsProvoked();
+        return getPlayer(playerId).getExplosionsProvoked();
     }
 }

@@ -107,6 +107,7 @@ command:
 game:
   start: "{prefix} &aThe game is starting in arena &e{arena}&a!"
   stop: "{prefix} &cThe game in arena &e{arena} &chas been stopped."
+  teleported-to-main-lobby: "{prefix} &aYou have been teleported to the main lobby."
 
   you-have-potato: "{prefix} &c&lYou have the hot potato! &eYou have {time} seconds to pass it to someone else!"
   player-has-potato: "{prefix} &e{player} &cnow has the hot potato!"
