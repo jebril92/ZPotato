@@ -27,11 +27,11 @@ public class GUIListener implements Listener {
         GUI gui = plugin.getGUIManager().getOpenedGUI(player.getUniqueId());
 
         if (gui == null && event.getView().getTitle().contains("§6§l")) {
-            if (event.getView().getTitle().equals("§6§lGestion des Arènes")) {
+            if (event.getView().getTitle().equals("§6§lArena Management")) {
                 gui = new ArenaListGUI(plugin);
                 plugin.getGUIManager().setGUI(player.getUniqueId(), gui);
             }
-            else if (event.getView().getTitle().startsWith("§6§lConfiguration: §e")) {
+            else if (event.getView().getTitle().startsWith("§6§lSettings: §e")) {
                 gui = new ArenaSettingsGUI(plugin);
                 plugin.getGUIManager().setGUI(player.getUniqueId(), gui);
             }
@@ -43,12 +43,12 @@ public class GUIListener implements Listener {
             if (gui != null) {
                 String[] args = new String[0];
 
-                if (event.getView().getTitle().startsWith("§6§lConfiguration: §e")) {
+                if (event.getView().getTitle().startsWith("§6§lSettings: §e")) {
                     String arenaName = event.getView().getTitle().substring(
                             event.getView().getTitle().lastIndexOf("§e") + 2);
                     args = new String[] { arenaName };
                 }
-                else if (event.getView().getTitle().startsWith("§6§lPoints de Spawn: §e")) {
+                else if (event.getView().getTitle().startsWith("§6§lSpawn Points: §e")) {
                     String arenaName = event.getView().getTitle().substring(
                             event.getView().getTitle().lastIndexOf("§e") + 2);
                     args = new String[] { arenaName };

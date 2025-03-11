@@ -18,7 +18,7 @@ public class ArenaListGUI extends GUI {
 
     private static final int ROWS = 6;
     private static final int SIZE = ROWS * 9;
-    private static final String TITLE = "§6§lGestion des Arènes";
+    private static final String TITLE = "§6§lArena Management";
 
     private final Main plugin;
 
@@ -43,49 +43,49 @@ public class ArenaListGUI extends GUI {
 
             if (arena.getState() == ArenaState.RUNNING) {
                 material = Material.RED_CONCRETE;
-                statusText = "§c§lEN COURS";
+                statusText = "§c§lRUNNING";
             } else if (arena.getState() == ArenaState.STARTING) {
                 material = Material.YELLOW_CONCRETE;
-                statusText = "§e§lDÉMARRAGE";
+                statusText = "§e§lSTARTING";
             } else if (!arena.isValid()) {
                 material = Material.GRAY_CONCRETE;
-                statusText = "§7§lINCOMPLÈTE";
+                statusText = "§7§lINCOMPLETE";
             } else {
                 material = Material.GREEN_CONCRETE;
-                statusText = "§a§lDISPONIBLE";
+                statusText = "§a§lAVAILABLE";
             }
 
-            lore.add("§7État: " + statusText);
-            lore.add("§7Joueurs: §e" + arena.getPlayerCount() + "/" + arena.getMaxPlayers());
-            lore.add("§7Min. joueurs: §e" + arena.getMinPlayers());
-            lore.add("§7Durée patate: §e" + arena.getPotatoTimer() + "s");
+            lore.add("§7Status: " + statusText);
+            lore.add("§7Players: §e" + arena.getPlayerCount() + "/" + arena.getMaxPlayers());
+            lore.add("§7Min. players: §e" + arena.getMinPlayers());
+            lore.add("§7Potato duration: §e" + arena.getPotatoTimer() + "s");
             lore.add("");
 
             if (arena.getLobby() == null) {
-                lore.add("§c✘ Lobby non défini");
+                lore.add("§c✘ Lobby not defined");
             } else {
-                lore.add("§a✓ Lobby défini");
+                lore.add("§a✓ Lobby defined");
             }
 
             if (arena.getSpectatorLocation() == null) {
-                lore.add("§c✘ Zone spectateur non définie");
+                lore.add("§c✘ Spectator area not defined");
             } else {
-                lore.add("§a✓ Zone spectateur définie");
+                lore.add("§a✓ Spectator area defined");
             }
 
             if (arena.getSpawnLocations().isEmpty()) {
-                lore.add("§c✘ Aucun point de spawn");
+                lore.add("§c✘ No spawn points");
             } else {
-                lore.add("§a✓ Points de spawn: §e" + arena.getSpawnLocations().size());
+                lore.add("§a✓ Spawn points: §e" + arena.getSpawnLocations().size());
             }
 
             lore.add("");
-            lore.add("§e➜ Clic gauche pour gérer cette arène");
+            lore.add("§e➜ Left click to manage this arena");
 
             if (arena.getState() == ArenaState.WAITING) {
-                lore.add("§a➜ Clic droit pour démarrer la partie");
+                lore.add("§a➜ Right click to start the game");
             } else if (arena.getState() == ArenaState.RUNNING || arena.getState() == ArenaState.STARTING) {
-                lore.add("§c➜ Clic droit pour arrêter la partie");
+                lore.add("§c➜ Right click to stop the game");
             }
 
             ItemStack arenaItem = GUIUtils.createItem(material, "§6§l" + arenaName, lore);
@@ -103,8 +103,8 @@ public class ArenaListGUI extends GUI {
 
         ItemStack createButton = GUIUtils.createItem(
                 Material.EMERALD_BLOCK,
-                "§a§lCréer une nouvelle arène",
-                "§7Cliquez pour créer une nouvelle arène"
+                "§a§lCreate a new arena",
+                "§7Click to create a new arena"
         );
         inventory.setItem(49, createButton);
 
@@ -127,7 +127,7 @@ public class ArenaListGUI extends GUI {
 
         if (slot == 49) {
             player.closeInventory();
-            player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aUtilisez §e/hp create <nom> [min] [max] §apour créer une arène.");
+            player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aUse §e/hp create <name> [min] [max] §ato create an arena.");
             return;
         }
 
@@ -146,13 +146,13 @@ public class ArenaListGUI extends GUI {
                         if (arena.getState() == ArenaState.WAITING) {
                             if (arena.canStart()) {
                                 plugin.getGameManager().startGame(arenaName);
-                                player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aLancement de la partie dans l'arène §e" + arenaName + "§a.");
+                                player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aStarting game in arena §e" + arenaName + "§a.");
                             } else {
-                                player.sendMessage(plugin.getMessagesManager().getPrefix() + " §cL'arène §e" + arenaName + " §cne peut pas être démarrée. Vérifiez la configuration.");
+                                player.sendMessage(plugin.getMessagesManager().getPrefix() + " §cArena §e" + arenaName + " §ccannot be started. Check the configuration.");
                             }
                         } else if (arena.getState() == ArenaState.RUNNING || arena.getState() == ArenaState.STARTING) {
                             plugin.getGameManager().stopGame(arenaName);
-                            player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aArrêt de la partie dans l'arène §e" + arenaName + "§a.");
+                            player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aStopping game in arena §e" + arenaName + "§a.");
                         }
 
                         plugin.getGUIManager().refreshGUI(player);

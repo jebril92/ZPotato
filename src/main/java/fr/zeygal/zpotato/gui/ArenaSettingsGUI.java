@@ -12,7 +12,7 @@ import org.bukkit.inventory.ItemStack;
 public class ArenaSettingsGUI extends GUI {
 
     private static final int SIZE = 36;
-    private static final String TITLE_PREFIX = "§6§lConfiguration: §e";
+    private static final String TITLE_PREFIX = "§6§lSettings: §e";
 
     private final Main plugin;
 
@@ -37,69 +37,69 @@ public class ArenaSettingsGUI extends GUI {
 
         ItemStack minPlayers = GUIUtils.createItem(
                 Material.PLAYER_HEAD,
-                "§e§lJoueurs minimum",
-                "§7Nombre minimum de joueurs: §e" + arena.getMinPlayers(),
+                "§e§lMinimum Players",
+                "§7Minimum number of players: §e" + arena.getMinPlayers(),
                 "",
-                "§a➜ Clic gauche pour augmenter",
-                "§c➜ Clic droit pour diminuer"
+                "§a➜ Left click to increase",
+                "§c➜ Right click to decrease"
         );
         inventory.setItem(10, minPlayers);
 
         ItemStack maxPlayers = GUIUtils.createItem(
                 Material.SKELETON_SKULL,
-                "§e§lJoueurs maximum",
-                "§7Nombre maximum de joueurs: §e" + arena.getMaxPlayers(),
+                "§e§lMaximum Players",
+                "§7Maximum number of players: §e" + arena.getMaxPlayers(),
                 "",
-                "§a➜ Clic gauche pour augmenter",
-                "§c➜ Clic droit pour diminuer"
+                "§a➜ Left click to increase",
+                "§c➜ Right click to decrease"
         );
         inventory.setItem(12, maxPlayers);
 
         ItemStack potatoTimer = GUIUtils.createItem(
                 Material.CLOCK,
-                "§e§lDurée de la patate",
-                "§7Temps avant explosion: §e" + arena.getPotatoTimer() + "s",
+                "§e§lPotato Timer",
+                "§7Time before explosion: §e" + arena.getPotatoTimer() + "s",
                 "",
-                "§a➜ Clic gauche pour augmenter (+5s)",
-                "§c➜ Clic droit pour diminuer (-5s)"
+                "§a➜ Left click to increase (+5s)",
+                "§c➜ Right click to decrease (-5s)"
         );
         inventory.setItem(14, potatoTimer);
 
         ItemStack setLobby = GUIUtils.createItem(
                 arena.getLobby() != null ? Material.LIME_WOOL : Material.RED_WOOL,
-                "§e§lPoint de Lobby",
-                arena.getLobby() != null ? "§a✓ Lobby défini" : "§c✘ Lobby non défini",
+                "§e§lLobby Point",
+                arena.getLobby() != null ? "§a✓ Lobby defined" : "§c✘ Lobby not defined",
                 "",
-                "§e➜ Cliquez pour définir à votre position actuelle"
+                "§e➜ Click to set to your current position"
         );
         inventory.setItem(16, setLobby);
 
         ItemStack setSpectator = GUIUtils.createItem(
                 arena.getSpectatorLocation() != null ? Material.LIME_WOOL : Material.RED_WOOL,
-                "§e§lZone Spectateur",
-                arena.getSpectatorLocation() != null ? "§a✓ Zone spectateur définie" : "§c✘ Zone spectateur non définie",
+                "§e§lSpectator Area",
+                arena.getSpectatorLocation() != null ? "§a✓ Spectator area defined" : "§c✘ Spectator area not defined",
                 "",
-                "§e➜ Cliquez pour définir à votre position actuelle"
+                "§e➜ Click to set to your current position"
         );
         inventory.setItem(20, setSpectator);
 
         ItemStack manageSpawns = GUIUtils.createItem(
                 Material.ENDER_PEARL,
-                "§e§lPoints de Spawn",
-                "§7Nombre de points: §e" + arena.getSpawnLocations().size(),
+                "§e§lSpawn Points",
+                "§7Number of points: §e" + arena.getSpawnLocations().size(),
                 "",
-                "§e➜ Clic gauche pour gérer les points de spawn",
-                "§a➜ Clic droit pour ajouter un point à votre position"
+                "§e➜ Left click to manage spawn points",
+                "§a➜ Right click to add a point at your position"
         );
         inventory.setItem(22, manageSpawns);
 
         ItemStack deleteArena = GUIUtils.createItem(
                 Material.BARRIER,
-                "§c§lSupprimer l'arène",
-                "§7Supprimer définitivement cette arène",
+                "§c§lDelete Arena",
+                "§7Permanently delete this arena",
                 "",
-                "§c➜ Cliquez pour supprimer",
-                "§4⚠ Cette action est irréversible!"
+                "§c➜ Click to delete",
+                "§4⚠ This action is irreversible!"
         );
         inventory.setItem(24, deleteArena);
 
@@ -141,18 +141,18 @@ public class ArenaSettingsGUI extends GUI {
                 if (newMin <= arena.getMaxPlayers()) {
                     arena.setMinPlayers(newMin);
                     plugin.getArenaManager().saveArenas();
-                    player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aLe nombre minimum de joueurs a été défini à §e" + newMin + "§a.");
+                    player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aThe minimum number of players has been set to §e" + newMin + "§a.");
                 } else {
-                    player.sendMessage(plugin.getMessagesManager().getPrefix() + " §cLe nombre minimum ne peut pas dépasser le maximum (§e" + arena.getMaxPlayers() + "§c).");
+                    player.sendMessage(plugin.getMessagesManager().getPrefix() + " §cThe minimum number cannot exceed the maximum (§e" + arena.getMaxPlayers() + "§c).");
                 }
             } else if (event.isRightClick()) {
                 int newMin = arena.getMinPlayers() - 1;
                 if (newMin >= 2) {
                     arena.setMinPlayers(newMin);
                     plugin.getArenaManager().saveArenas();
-                    player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aLe nombre minimum de joueurs a été défini à §e" + newMin + "§a.");
+                    player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aThe minimum number of players has been set to §e" + newMin + "§a.");
                 } else {
-                    player.sendMessage(plugin.getMessagesManager().getPrefix() + " §cLe nombre minimum ne peut pas être inférieur à 2.");
+                    player.sendMessage(plugin.getMessagesManager().getPrefix() + " §cThe minimum number cannot be less than 2.");
                 }
             }
             plugin.getGUIManager().refreshGUI(player, arenaName);
@@ -164,15 +164,15 @@ public class ArenaSettingsGUI extends GUI {
                 int newMax = arena.getMaxPlayers() + 1;
                 arena.setMaxPlayers(newMax);
                 plugin.getArenaManager().saveArenas();
-                player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aLe nombre maximum de joueurs a été défini à §e" + newMax + "§a.");
+                player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aThe maximum number of players has been set to §e" + newMax + "§a.");
             } else if (event.isRightClick()) {
                 int newMax = arena.getMaxPlayers() - 1;
                 if (newMax >= arena.getMinPlayers()) {
                     arena.setMaxPlayers(newMax);
                     plugin.getArenaManager().saveArenas();
-                    player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aLe nombre maximum de joueurs a été défini à §e" + newMax + "§a.");
+                    player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aThe maximum number of players has been set to §e" + newMax + "§a.");
                 } else {
-                    player.sendMessage(plugin.getMessagesManager().getPrefix() + " §cLe nombre maximum ne peut pas être inférieur au minimum (§e" + arena.getMinPlayers() + "§c).");
+                    player.sendMessage(plugin.getMessagesManager().getPrefix() + " §cThe maximum number cannot be less than the minimum (§e" + arena.getMinPlayers() + "§c).");
                 }
             }
             plugin.getGUIManager().refreshGUI(player, arenaName);
@@ -184,15 +184,15 @@ public class ArenaSettingsGUI extends GUI {
                 int newTimer = arena.getPotatoTimer() + 5;
                 arena.setPotatoTimer(newTimer);
                 plugin.getArenaManager().saveArenas();
-                player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aLa durée de la patate a été définie à §e" + newTimer + "s§a.");
+                player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aThe potato timer duration has been set to §e" + newTimer + "s§a.");
             } else if (event.isRightClick()) {
                 int newTimer = arena.getPotatoTimer() - 5;
                 if (newTimer >= 5) {
                     arena.setPotatoTimer(newTimer);
                     plugin.getArenaManager().saveArenas();
-                    player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aLa durée de la patate a été définie à §e" + newTimer + "s§a.");
+                    player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aThe potato timer duration has been set to §e" + newTimer + "s§a.");
                 } else {
-                    player.sendMessage(plugin.getMessagesManager().getPrefix() + " §cLa durée de la patate ne peut pas être inférieure à 5 secondes.");
+                    player.sendMessage(plugin.getMessagesManager().getPrefix() + " §cThe potato timer duration cannot be less than 5 seconds.");
                 }
             }
             plugin.getGUIManager().refreshGUI(player, arenaName);
@@ -202,7 +202,7 @@ public class ArenaSettingsGUI extends GUI {
         if (slot == 16) {
             arena.setLobby(player.getLocation());
             plugin.getArenaManager().saveArenas();
-            player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aLe lobby de l'arène §e" + arenaName + " §aa été défini à votre position.");
+            player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aThe lobby of arena §e" + arenaName + " §ahas been set to your position.");
             plugin.getGUIManager().refreshGUI(player, arenaName);
             return;
         }
@@ -210,7 +210,7 @@ public class ArenaSettingsGUI extends GUI {
         if (slot == 20) {
             arena.setSpectatorLocation(player.getLocation());
             plugin.getArenaManager().saveArenas();
-            player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aLa zone spectateur de l'arène §e" + arenaName + " §aa été définie à votre position.");
+            player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aThe spectator area of arena §e" + arenaName + " §ahas been set to your position.");
             plugin.getGUIManager().refreshGUI(player, arenaName);
             return;
         }
@@ -222,7 +222,7 @@ public class ArenaSettingsGUI extends GUI {
             } else if (event.isRightClick()) {
                 arena.addSpawnLocation(player.getLocation());
                 plugin.getArenaManager().saveArenas();
-                player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aUn point de spawn a été ajouté à l'arène §e" + arenaName + "§a.");
+                player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aA spawn point has been added to arena §e" + arenaName + "§a.");
                 plugin.getGUIManager().refreshGUI(player, arenaName);
             }
             return;
@@ -231,7 +231,7 @@ public class ArenaSettingsGUI extends GUI {
         if (slot == 24) {
             player.closeInventory();
             plugin.getArenaManager().deleteArena(arenaName);
-            player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aL'arène §e" + arenaName + " §aa été supprimée avec succès.");
+            player.sendMessage(plugin.getMessagesManager().getPrefix() + " §aArena §e" + arenaName + " §ahas been successfully deleted.");
             plugin.getGUIManager().openGUI(player, "arena_list");
             return;
         }

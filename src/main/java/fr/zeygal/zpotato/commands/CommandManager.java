@@ -177,7 +177,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
                     plugin.getGUIManager().openGUI(player, "arena_settings", arenaName);
                     return true;
                 } else {
-                    sender.sendMessage(plugin.getMessagesManager().getPrefix() + " §cUtilisation: §e/hp " + args[0] + " arena <nom_arène>");
+                    sender.sendMessage(plugin.getMessagesManager().getPrefix() + " §cUsage: §e/hp " + args[0] + " arena <arena_name>");
                     return true;
                 }
             } else if (guiSubCommand.equals("spawns")) {
@@ -193,7 +193,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
                     plugin.getGUIManager().openGUI(player, "spawn_manager", arenaName);
                     return true;
                 } else {
-                    sender.sendMessage(plugin.getMessagesManager().getPrefix() + " §cUtilisation: §e/hp " + args[0] + " spawns <nom_arène>");
+                    sender.sendMessage(plugin.getMessagesManager().getPrefix() + " §cUsage: §e/hp " + args[0] + " spawns <arena_name>");
                     return true;
                 }
             }
@@ -759,7 +759,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
                 Player arenaPlayer = org.bukkit.Bukkit.getPlayer(playerId);
                 if (arenaPlayer != null) {
                     arenaPlayer.sendMessage(plugin.getMessagesManager().getPrefix() + " §e" + player.getName() +
-                            " §7a rejoint l'arène §e" + arena.getName() +
+                            " §7has joined arena §e" + arena.getName() +
                             " §7(" + arena.getPlayerCount() + "/" + arena.getMaxPlayers() + ")");
                 }
             }

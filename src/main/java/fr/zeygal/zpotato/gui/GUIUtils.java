@@ -72,11 +72,11 @@ public class GUIUtils {
     }
 
     public static ItemStack createBackButton() {
-        return createItem(Material.ARROW, "&c&lRetour", "&7Cliquez pour revenir au menu précédent");
+        return createItem(Material.ARROW, "&c&lBack", "&7Click to return to the previous menu");
     }
 
     public static ItemStack createCloseButton() {
-        return createItem(Material.BARRIER, "&c&lFermer", "&7Cliquez pour fermer ce menu");
+        return createItem(Material.BARRIER, "&c&lClose", "&7Click to close this menu");
     }
 
     public static void fillEmptySlots(ItemStack[] items, ItemStack filler) {
