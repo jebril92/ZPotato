@@ -25,7 +25,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
             "list", "reload", "gui", "admin"
     );
     private static final List<String> USER_COMMANDS = Arrays.asList(
-            "join", "leave", "stats"
+            "join", "leave", "stats", "scoreboard"
     );
 
     public CommandManager(Main plugin) {
@@ -80,6 +80,8 @@ public class CommandManager implements CommandExecutor, TabCompleter {
             case "gui":
             case "admin":
                 return handleGUICommand(sender, args);
+            case "scoreboard":
+                return handleScoreboardCommand(sender, args);
             default:
                 sender.sendMessage(plugin.getMessagesManager().getMessage("command.unknown"));
                 return true;
@@ -99,6 +101,10 @@ public class CommandManager implements CommandExecutor, TabCompleter {
 
             if (sender.hasPermission("hotpotato.user")) {
                 subCommands.addAll(USER_COMMANDS);
+            }
+
+            if (sender.hasPermission("hotpotato.scoreboard.user")) {
+                subCommands.add("scoreboard");
             }
 
             String prefix = args[0].toLowerCase();
@@ -127,6 +133,13 @@ public class CommandManager implements CommandExecutor, TabCompleter {
                         .filter(cmd -> cmd.startsWith(prefix.toLowerCase()))
                         .collect(Collectors.toList()));
             }
+
+            if (subCommand.equals("scoreboard") && sender.hasPermission("hotpotato.scoreboard.user")) {
+                List<String> scoreboardOptions = Arrays.asList("on", "off");
+                completions.addAll(scoreboardOptions.stream()
+                        .filter(option -> option.startsWith(prefix.toLowerCase()))
+                        .collect(Collectors.toList()));
+            }
         } else if (args.length == 3) {
             String subCommand = args[0].toLowerCase();
             String subSubCommand = args[1].toLowerCase();
@@ -143,6 +156,45 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         }
 
         return completions;
+    }
+
+    private boolean handleScoreboardCommand(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(plugin.getMessagesManager().getMessage("command.player-only"));
+            return true;
+        }
+
+        if (!sender.hasPermission("hotpotato.scoreboard.user")) {
+            sender.sendMessage(plugin.getMessagesManager().getMessage("permission.denied"));
+            return true;
+        }
+
+        Player player = (Player) sender;
+
+        if (args.length < 2) {
+            sender.sendMessage(plugin.getMessagesManager().getPrefix() + " §cUsage: §e/hp scoreboard <on|off>");
+            return true;
+        }
+
+        String option = args[1].toLowerCase();
+
+        if (option.equals("on")) {
+            if (plugin.getArenaManager().isPlayerInAnyArena(player.getUniqueId())) {
+                Arena arena = plugin.getArenaManager().getPlayerArena(player.getUniqueId());
+                plugin.getScoreboardManager().updateScoreboard(player, arena);
+                sender.sendMessage(plugin.getMessagesManager().getPrefix() + " §aLe scoreboard a été activé.");
+            } else {
+                sender.sendMessage(plugin.getMessagesManager().getPrefix() + " §cVous devez être dans une arène pour activer le scoreboard.");
+            }
+            return true;
+        } else if (option.equals("off")) {
+            plugin.getScoreboardManager().removeScoreboard(player);
+            sender.sendMessage(plugin.getMessagesManager().getPrefix() + " §aLe scoreboard a été désactivé.");
+            return true;
+        } else {
+            sender.sendMessage(plugin.getMessagesManager().getPrefix() + " §cOption invalide. Utilisez §e/hp scoreboard <on|off>");
+            return true;
+        }
     }
 
     private boolean handleGUICommand(CommandSender sender, String[] args) {
@@ -192,6 +244,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
             sender.sendMessage("§e/hp join <arena> §7- Join an arena");
             sender.sendMessage("§e/hp leave §7- Leave the current arena");
             sender.sendMessage("§e/hp stats §7- View your stats");
+            sender.sendMessage("§e/hp scoreboard <on|off> §7- Toggle scoreboard visibility");
         }
 
         if (sender.hasPermission("hotpotato.admin")) {

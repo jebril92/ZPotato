@@ -30,6 +30,8 @@ public class PlayerListener implements Listener {
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
 
+        plugin.getScoreboardManager().removeScoreboard(player);
+
         if (plugin.getArenaManager().isPlayerInAnyArena(player.getUniqueId())) {
             Arena arena = plugin.getArenaManager().getPlayerArena(player.getUniqueId());
 
@@ -45,6 +47,8 @@ public class PlayerListener implements Listener {
             } else {
                 plugin.getArenaManager().removePlayerFromArena(player);
             }
+
+            plugin.getScoreboardManager().updateScoreboardsForArena(arena.getName());
         }
 
         plugin.getPlayerManager().savePlayers();
@@ -66,14 +70,12 @@ public class PlayerListener implements Listener {
 
         Location to = event.getTo();
 
-        // Allow plugin teleports only to valid arena locations
         if (event.getCause() == PlayerTeleportEvent.TeleportCause.PLUGIN) {
             if (!isLocationInArena(to, arena)) {
                 event.setCancelled(true);
                 player.sendMessage(plugin.getMessagesManager().getMessage("game.cannot-teleport"));
             }
         } else {
-            // Prevent other teleport types during game
             event.setCancelled(true);
             player.sendMessage(plugin.getMessagesManager().getMessage("game.cannot-teleport"));
         }

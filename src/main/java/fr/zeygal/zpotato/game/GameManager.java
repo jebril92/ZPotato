@@ -9,7 +9,6 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 public class GameManager {
 
@@ -52,7 +51,7 @@ public class GameManager {
         Arena arena = plugin.getArenaManager().getArena(arenaName);
         if (arena == null) return;
 
-        arena.setState(ArenaState.STARTING);
+        plugin.getArenaManager().setArenaState(arena, ArenaState.STARTING);
 
         int countdownTime = plugin.getConfigManager().getCountdownTime();
         final int[] countdown = {countdownTime};
@@ -94,6 +93,7 @@ public class GameManager {
 
         Arena arena = game.getArena();
         arena.setState(ArenaState.RUNNING);
+        plugin.getArenaManager().setArenaState(arena, ArenaState.RUNNING);
 
         List<Location> spawnLocations = arena.getSpawnLocations();
         List<UUID> playerIds = arena.getPlayers();
@@ -126,6 +126,7 @@ public class GameManager {
         game.setPotatoHolder(potatoHolder);
 
         game.startPotatoTimer();
+        plugin.getScoreboardManager().updateScoreboardsForArena(arenaName);
     }
 
     public boolean stopGame(String arenaName) {
@@ -179,6 +180,7 @@ public class GameManager {
 
         arena.setState(ArenaState.WAITING);
         activeGames.remove(arenaName);
+        plugin.getScoreboardManager().updateScoreboardsForArena(arenaName);
 
         return true;
     }

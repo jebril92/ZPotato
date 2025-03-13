@@ -124,6 +124,10 @@ public class ArenaManager {
         if (added && arena.getLobby() != null) {
             player.teleport(arena.getLobby());
 
+            plugin.getScoreboardManager().onPlayerJoin(player, arena);
+
+            plugin.getScoreboardManager().updateScoreboardsForArena(arenaName);
+
             if (arena.canStart() && arena.getState() == ArenaState.WAITING) {
                 plugin.getGameManager().startGame(arenaName);
             }
@@ -134,6 +138,29 @@ public class ArenaManager {
 
     public boolean removePlayerFromArena(Player player) {
         Arena arena = getPlayerArena(player.getUniqueId());
-        return arena != null && arena.removePlayer(player.getUniqueId());
+        if (arena == null) {
+            return false;
+        }
+
+        boolean removed = arena.removePlayer(player.getUniqueId());
+
+        if (removed) {
+            plugin.getScoreboardManager().onPlayerQuit(player);
+
+            plugin.getScoreboardManager().updateScoreboardsForArena(arena.getName());
+        }
+
+        return removed;
+    }
+
+    public void setArenaState(Arena arena, ArenaState state) {
+        if (arena == null) return;
+
+        ArenaState oldState = arena.getState();
+        arena.setState(state);
+
+        if (oldState != state) {
+            plugin.getScoreboardManager().onArenaStateChange(arena);
+        }
     }
 }

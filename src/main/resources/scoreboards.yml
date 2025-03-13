@@ -1,0 +1,54 @@
+# ZPotato Scoreboards Configuration
+
+# Global scoreboard settings
+enabled: true
+
+# Lobby scoreboard
+lobby-scoreboard:
+  enabled: true
+  title: "&6&lHot Potato - Lobby"
+  update-interval: 20
+  lines:
+    - "&7------------------------"
+    - "&fArena: &e{arena_name}"
+    - "&fStatus: &e{arena_state}"
+    - "&fPlayers: &e{arena_player_count}/{arena_max_players}"
+    - "&fMin Players: &e{arena_min_players}"
+    - ""
+    - "&eWaiting for more players..."
+    - "&7Join with /hp join {arena_name}"
+    - "&7------------------------"
+
+# Game scoreboard
+game-scoreboard:
+  enabled: true
+  title: "&c&lHot Potato - Game"
+  update-interval: 10
+  lines:
+    - "&7------------------------"
+    - "&fArena: &e{arena_name}"
+    - "&fRemaining Players: &e{arena_player_count}"
+    - ""
+    - "&cPotato Holder:"
+    - "&e{potato_holder}"
+    - ""
+    - "&fTime Left: &c{potato_time}s"
+    - ""
+    - "&7You have the potato: &e{is_potato_holder}"
+    - "&7------------------------"
+
+# Available placeholders:
+# - {arena_name} - The name of the arena
+# - {arena_player_count} - Current number of players in the arena
+# - {arena_max_players} - Maximum number of players in the arena
+# - {arena_min_players} - Minimum number of players needed to start
+# - {arena_state} - Current state of the arena (WAITING, STARTING, RUNNING, ENDING)
+# - {potato_holder} - Name of the player holding the potato (during RUNNING state)
+# - {potato_time} - Time left until the potato explodes (during RUNNING state)
+# - {is_potato_holder} - "YES" if the player has the potato, "NO" otherwise
+# - {player_name} - Name of the player viewing the scoreboard
+# - {player_games} - Number of games played by the player
+# - {player_wins} - Number of wins by the player
+# - {player_explosions} - Number of times the player was eliminated by the potato
+#
+# Note: PlaceholderAPI placeholders are also supported if that plugin is installed

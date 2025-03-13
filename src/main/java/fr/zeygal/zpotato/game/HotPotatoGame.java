@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class HotPotatoGame {
 
@@ -148,7 +147,6 @@ public class HotPotatoGame {
     }
 
     private void updateGlowEffects() {
-        // Remove effect from all players
         arena.getPlayers().stream()
                 .map(Bukkit::getPlayer)
                 .filter(Objects::nonNull)
@@ -159,7 +157,6 @@ public class HotPotatoGame {
                 .filter(Objects::nonNull)
                 .forEach(player -> player.removePotionEffect(PotionEffectType.GLOWING));
 
-        // Add effect only to potato holder
         Player potatoPlayer = Bukkit.getPlayer(potatoHolder);
         if (potatoPlayer != null) {
             potatoPlayer.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 40, 0, false, false));
@@ -212,7 +209,6 @@ public class HotPotatoGame {
     }
 
     public void stopPotatoTimer() {
-        // Cancel timer tasks
         if (potatoTimerTaskId != -1) {
             Bukkit.getScheduler().cancelTask(potatoTimerTaskId);
             potatoTimerTaskId = -1;
@@ -228,7 +224,6 @@ public class HotPotatoGame {
             glowEffectTaskId = -1;
         }
 
-        // Reset potato holder
         if (potatoHolder != null) {
             plugin.getPlayerManager().setHotPotato(potatoHolder, false);
 
@@ -240,7 +235,6 @@ public class HotPotatoGame {
             }
         }
 
-        // Remove glowing effect from all players
         arena.getPlayers().stream()
                 .map(Bukkit::getPlayer)
                 .filter(Objects::nonNull)
@@ -251,7 +245,6 @@ public class HotPotatoGame {
                 .filter(Objects::nonNull)
                 .forEach(player -> player.removePotionEffect(PotionEffectType.GLOWING));
 
-        // Reset scoreboard
         resetScoreboard();
     }
 

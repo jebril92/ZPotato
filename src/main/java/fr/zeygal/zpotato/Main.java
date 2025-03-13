@@ -9,7 +9,9 @@ import fr.zeygal.zpotato.gui.GUIListener;
 import fr.zeygal.zpotato.gui.GUIManager;
 import fr.zeygal.zpotato.listeners.GameListener;
 import fr.zeygal.zpotato.listeners.PlayerListener;
+import fr.zeygal.zpotato.placeholders.ZPotatoPlaceholderExpansion;
 import fr.zeygal.zpotato.player.PlayerManager;
+import fr.zeygal.zpotato.scoreboard.ScoreboardManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Main extends JavaPlugin {
@@ -22,6 +24,7 @@ public final class Main extends JavaPlugin {
     private GameManager gameManager;
     private CommandManager commandManager;
     private GUIManager guiManager;
+    private ScoreboardManager scoreboardManager;
 
     @Override
     public void onEnable() {
@@ -38,12 +41,22 @@ public final class Main extends JavaPlugin {
         this.messagesManager.loadMessages();
         this.arenaManager.loadArenas();
 
+        this.scoreboardManager = new ScoreboardManager(this);
+
         this.commandManager = new CommandManager(this);
         this.commandManager.registerCommands();
 
         getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
         getServer().getPluginManager().registerEvents(new GameListener(this), this);
         getServer().getPluginManager().registerEvents(new GUIListener(this), this);
+
+        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            getLogger().info("PlaceholderAPI found, registering placeholders...");
+            new ZPotatoPlaceholderExpansion(this).register();
+            getLogger().info("ZPotato placeholders registered successfully!");
+        } else {
+            getLogger().info("PlaceholderAPI not found, placeholders will not be available.");
+        }
 
         getLogger().info("ZPotato plugin has been enabled!");
     }
@@ -60,6 +73,10 @@ public final class Main extends JavaPlugin {
 
         if (playerManager != null) {
             playerManager.savePlayers();
+        }
+
+        if (scoreboardManager != null) {
+            scoreboardManager.shutdown();
         }
 
         getLogger().info("ZPotato plugin has been disabled!");
@@ -91,5 +108,9 @@ public final class Main extends JavaPlugin {
 
     public GUIManager getGUIManager() {
         return guiManager;
+    }
+
+    public ScoreboardManager getScoreboardManager() {
+        return scoreboardManager;
     }
 }

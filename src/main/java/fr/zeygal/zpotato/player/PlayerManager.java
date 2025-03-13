@@ -119,4 +119,13 @@ public class PlayerManager {
     public int getExplosionsProvoked(UUID playerId) {
         return getPlayer(playerId).getExplosionsProvoked();
     }
+
+    /**
+     * Gets a map of all players and their data
+     *
+     * @return A map containing all player data with UUID as keys
+     */
+    public Map<UUID, HPPlayer> getAllPlayers() {
+        return new HashMap<>(players);
+    }
 }

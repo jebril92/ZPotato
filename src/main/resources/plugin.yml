@@ -3,6 +3,7 @@ version: '1.0-BETA'
 main: fr.zeygal.zpotato.Main
 api-version: '1.21'
 authors: [ZEYGAL]
+softdepend: [PlaceholderAPI]
 
 commands:
   hp:
@@ -17,6 +18,7 @@ permissions:
     children:
       hotpotato.user: true
       hotpotato.admin.*: true
+      hotpotato.scoreboard.admin: true
 
   hotpotato.admin.*:
     description: All admin sub-permissions
@@ -42,3 +44,12 @@ permissions:
       hotpotato.user.join: true
       hotpotato.user.leave: true
       hotpotato.user.stats: true
+      hotpotato.scoreboard.user: true
+
+  hotpotato.scoreboard.user:
+    description: Allows seeing scoreboards during gameplay
+    default: true
+
+  hotpotato.scoreboard.admin:
+    description: Allows admin access to scoreboard settings
+    default: op
